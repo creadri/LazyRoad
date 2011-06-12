@@ -1,0 +1,10 @@
+main: creadri.LazyRoad.LazyRoad
+version: 0.2
+name: LazyRoad
+commands:
+  road:
+    description: 'Make roads.'
+    usage: |
+      /<command>
+      /<command> [name] [tunnel]
+      /<command> stop
