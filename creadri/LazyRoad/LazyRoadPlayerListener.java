@@ -40,7 +40,7 @@ public class LazyRoadPlayerListener extends PlayerListener {
         builders.put(player, road);
     }
     
-    public void removeBuilder(Player player) {
-        builders.remove(player);
+    public RoadEnabled removeBuilder(Player player) {
+        return builders.remove(player);
     }
 }

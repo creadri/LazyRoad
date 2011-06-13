@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.command.Command;
@@ -78,6 +79,11 @@ public class LazyRoad extends JavaPlugin {
         if (!eventRegistered) {
             PluginManager pm = getServer().getPluginManager();
             pm.registerEvent(Event.Type.PLUGIN_ENABLE, pluginListener, Priority.Monitor, this);
+            pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
+
+            eventRegistered = true;
+
+            log.log(Level.INFO, "[LazyRoad] : Version 0.3.2 is enabled!");
         }
     }
 
@@ -94,8 +100,7 @@ public class LazyRoad extends JavaPlugin {
 
         if (label.equals("road") && sender instanceof Player) {
             Player player = (Player) sender;
-
-            if (!permissions.has(player, "LazyRoad.build")) {
+            if ((permissions == null && !player.isOp()) || (permissions != null) && !permissions.has(player, "LazyRoad.build")) {
                 player.sendMessage(messages.getMessage("noPermissions"));
                 return true;
             }
@@ -103,8 +108,12 @@ public class LazyRoad extends JavaPlugin {
             if (args.length > 0) {
 
                 if (args[0].equals("stop")) {
-                    playerListener.removeBuilder(player);
-                    player.sendMessage(messages.getMessage("buildStop"));
+                    RoadEnabled re = playerListener.removeBuilder(player);
+
+                    String msg = messages.getMessage("buildStop");
+                    msg = Messages.setField(msg, "%blocks%", Integer.toString(re.getCount()));
+                    player.sendMessage(msg);
+
                     return true;
                 } else if (args[0].equals("reload")) {
                     loadRoads();
@@ -120,17 +129,42 @@ public class LazyRoad extends JavaPlugin {
                     return true;
                 }
 
-                boolean tunnel = args.length > 1;
+                RoadEnabled re = new RoadEnabled(road);
+                int count = -1;
+                boolean tunnelMode = false;
+                if (args.length >= 2) {
+                    try {
+                        count = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException ex) {
+                        count = -1;
+                    }
+                    
+                    if (count < 0 && (args[1].equals("on") || args[1].equals("true"))) {
+                        tunnelMode = true;
+                    } else if (args.length > 2 && (args[1].equals("on") || args[1].equals("true"))) {
+                        tunnelMode = true;
+                    }
+                }
 
-                playerListener.addBuilder(player, new RoadEnabled(road, tunnel));
 
-                player.sendMessage(messages.getMessage("canBuild"));
+                if (count >= 0) {
+                    re.setCount(count);
+                }
+                re.setTunnel(tunnelMode);
+
+                playerListener.addBuilder(player, re);
+
+                String msg = messages.getMessage("canBuild");
+                msg = Messages.setField(msg, "%name%", args[0]);
+                player.sendMessage(msg);
+
             } else {
                 // list the roads
-                Iterator<String> it = roads.keySet().iterator();
+                Iterator<Entry<String, Road>> it = roads.entrySet().iterator();
                 while (it.hasNext()) {
+                    Entry<String, Road> entry = it.next();
                     String msg = messages.getMessage("roadList");
-                    msg = Messages.setField(msg, "%name%", it.next());
+                    msg = Messages.setField(msg, "%name%", entry.getKey());
                     player.sendMessage(msg);
                 }
             }
@@ -153,8 +187,6 @@ public class LazyRoad extends JavaPlugin {
      */
     public void setPermissions(PermissionHandler perm) {
         permissions = perm;
-
-        registerEvents();
     }
 
     /**
@@ -165,18 +197,8 @@ public class LazyRoad extends JavaPlugin {
         return permissions != null;
     }
 
-    private void registerEvents() {
-        if (!eventRegistered) {
-            PluginManager pm = getServer().getPluginManager();
-            pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
-            eventRegistered = true;
-
-            log.log(Level.INFO, "[LazyRoad] : Version 0.2 is enabled!");
-        }
-    }
-
     private void loadRoads() {
-        
+
         roads.clear();
 
         File[] files = roadsDirectory.listFiles(new FilenameFilter() {
@@ -222,10 +244,10 @@ public class LazyRoad extends JavaPlugin {
                         maxSequence = rp.getRepeatEvery();
                     }
                     road.setRoadPart(partIndex, rp);
-                    
+
                     partIndex++;
                 }
-                
+
                 road.setMaxSequence(maxSequence);
 
                 roads.put(roadName, road);

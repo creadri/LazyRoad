@@ -13,15 +13,14 @@ public class RoadEnabled {
     private int count;
     private int lastBuiltStairs = -1;
     private boolean hasBuilt = false;
-    private boolean tunnel;
+    private boolean tunnel = false;
     private int oldX = -1;
     private int oldY = -1;
     private int oldZ = -1;
 
-    public RoadEnabled(Road road, boolean tunnel) {
+    public RoadEnabled(Road road) {
         this.road = road;
         this.count = 1;
-        this.tunnel = tunnel;
     }
 
     public void drawRoad(Player player) {
@@ -372,11 +371,19 @@ public class RoadEnabled {
         return count;
     }
 
+    public void setCount(int count) {
+        this.count = count;
+    }
+
     public Road getRoad() {
         return road;
     }
 
     public boolean isTunnel() {
         return tunnel;
+    }
+
+    public void setTunnel(boolean tunnel) {
+        this.tunnel = tunnel;
     }
 }
