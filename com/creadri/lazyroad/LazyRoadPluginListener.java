@@ -1,4 +1,4 @@
-package creadri.LazyRoad;
+package com.creadri.lazyroad;
 
 import com.nijikokun.bukkit.Permissions.Permissions;
 import java.util.logging.Level;

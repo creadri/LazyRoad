@@ -1,11 +1,26 @@
-main: creadri.LazyRoad.LazyRoad
-version: 0.3.2
+main: com.creadri.lazyroad.LazyRoad
+version: 0.4
 name: LazyRoad
 commands:
   road:
     description: 'Make roads.'
     usage: |
       /<command>
-      /<command> roadName <Name block count> <Tunnel mode>
+      /<command> roadName [start count]
       /<command> stop
-      /<command> 
+      /<command> undo
+  bridge:
+    description: 'Make bridges.'
+    usage: |
+      /<command>
+      /<command> roadName pillarName [start count]
+      /<command> stop
+      /<command> undo
+  tunnel:
+    description: 'Make tunnels.'
+    usage: |
+      /<command>
+      /<command> roadName [start count]
+      /<command> stop
+      /<command> undo
+      

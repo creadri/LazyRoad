@@ -1,11 +1,11 @@
-package creadri.LazyRoad;
+package com.creadri.lazyroad;
 
 /**
  *
  * @author creadri
  */
 public class RoadPart {
-    private RoadLayer[] layers;
+    private Layer[] layers;
     private int layerSize;
     private int groundLayer;
     private int repeatEvery;
@@ -13,7 +13,7 @@ public class RoadPart {
     public RoadPart(int layerSize, int repeatEvery) {
         this.layerSize = layerSize;
         this.repeatEvery = repeatEvery;
-        this.layers = new RoadLayer[layerSize];
+        this.layers = new Layer[layerSize];
     }
     
     public int getRepeatEvery() {
@@ -28,15 +28,15 @@ public class RoadPart {
         return layerSize;
     }
 
-    public RoadLayer[] getLayers() {
+    public Layer[] getLayers() {
         return layers;
     }
     
-    public RoadLayer getLayer(int index) {
+    public Layer getLayer(int index) {
         return layers[index];
     }
     
-    public void setLayer(int index, RoadLayer layer) {
+    public void setLayer(int index, Layer layer) {
         layers[index] = layer;
     }
 

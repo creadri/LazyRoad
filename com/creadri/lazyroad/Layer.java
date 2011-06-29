@@ -1,16 +1,16 @@
-package creadri.LazyRoad;
+package com.creadri.lazyroad;
 
 /**
  *
  * @author creadri
  */
-public class RoadLayer {
+public class Layer {
 
     private int[] layerIds;
     private short[] layerDurabilities;
     private int size;
 
-    public RoadLayer(int size) {
+    public Layer(int size) {
         this.size = size;
         this.layerIds = new int[size];
         this.layerDurabilities = new short[size];

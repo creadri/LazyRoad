@@ -1,4 +1,4 @@
-package creadri.LazyRoad;
+package com.creadri.lazyroad;
 
 /**
  *
