@@ -46,7 +46,7 @@ public class RoadEnabled {
 
         // get the first block underneath the player
 
-        while (world.getBlockAt(x, y, z).getTypeId() == 0) {
+        while (isToIgnore(world.getBlockAt(x, y, z))) {
             y--;
         }
 
@@ -59,6 +59,10 @@ public class RoadEnabled {
             } else if (y - oldY > 1) {
                 y = oldY + 1;
             }
+        }
+        // for tunnel mode
+        if (hasBuilt && tunnel) {
+            y = oldY;
         }
 
         // get the direction of the player N, S, W, E
@@ -136,7 +140,9 @@ public class RoadEnabled {
                         int typeId = layer.getTypeId(j);
                         if (typeId != -1) {
                             Block b = world.getBlockAt(newX, newY, newZ);
-                            undo.putBlock(b);
+                            if (typeId != 0 || b.getTypeId() != 0) {
+                                undo.putBlock(b);
+                            }
                             b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                         }
 
@@ -179,9 +185,10 @@ public class RoadEnabled {
                             int typeId = layer.getTypeId(j);
                             if (typeId != -1) {
                                 Block b = world.getBlockAt(newX, newY, newZ);
-                                int bType = b.getTypeId();
-                                if (bType == 0 || (bType >= 8 && bType <= 11) || bType == 31 || bType == 32) {
-                                    undo.putBlock(b);
+                                if (!isToIgnore(b)) {
+                                    if (typeId != 0 || b.getTypeId() != 0) {
+                                        undo.putBlock(b);
+                                    }
                                     b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                                     hasBuild = true;
                                 }
@@ -219,7 +226,7 @@ public class RoadEnabled {
                     int typeId = layer.getTypeId(j);
                     if (typeId != -1) {
                         Block b = world.getBlockAt(newX, newY, newZ);
-                        undo.putBlock(b);
+                        //undo.putBlock(b);
                         b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                     }
 
@@ -260,7 +267,9 @@ public class RoadEnabled {
                         int typeId = layer.getTypeId(j);
                         if (typeId != -1) {
                             Block b = world.getBlockAt(newX, newY, newZ);
-                            undo.putBlock(b);
+                            if (typeId != 0 || b.getTypeId() != 0) {
+                                undo.putBlock(b);
+                            }
                             b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                         }
 
@@ -303,9 +312,10 @@ public class RoadEnabled {
                             int typeId = layer.getTypeId(j);
                             if (typeId != -1) {
                                 Block b = world.getBlockAt(newX, newY, newZ);
-                                int bType = b.getTypeId();
-                                if (bType == 0 || (bType >= 8 && bType <= 11) || bType == 31 || bType == 32) {
-                                    undo.putBlock(b);
+                                if (!isToIgnore(b)) {
+                                    if (typeId != 0 || b.getTypeId() != 0) {
+                                        undo.putBlock(b);
+                                    }
                                     b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                                     hasBuild = true;
                                 }
@@ -343,7 +353,7 @@ public class RoadEnabled {
                     int typeId = layer.getTypeId(j);
                     if (typeId != -1) {
                         Block b = world.getBlockAt(newX, newY, newZ);
-                        undo.putBlock(b);
+                        //undo.putBlock(b);
                         b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                     }
 
@@ -384,7 +394,9 @@ public class RoadEnabled {
                         int typeId = layer.getTypeId(j);
                         if (typeId != -1) {
                             Block b = world.getBlockAt(newX, newY, newZ);
-                            undo.putBlock(b);
+                            if (typeId != 0 || b.getTypeId() != 0) {
+                                undo.putBlock(b);
+                            }
                             b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                         }
 
@@ -397,7 +409,7 @@ public class RoadEnabled {
                 break;
             }
         }
-        
+
         // build pillars
         if (pillar != null && groundLayer != -1) {
             pmax = pillar.getPartsSize();
@@ -427,9 +439,10 @@ public class RoadEnabled {
                             int typeId = layer.getTypeId(j);
                             if (typeId != -1) {
                                 Block b = world.getBlockAt(newX, newY, newZ);
-                                int bType = b.getTypeId();
-                                if (bType == 0 || (bType >= 8 && bType <= 11) || bType == 31 || bType == 32) {
-                                    undo.putBlock(b);
+                                if (!isToIgnore(b)) {
+                                    if (typeId != 0 || b.getTypeId() != 0) {
+                                        undo.putBlock(b);
+                                    }
                                     b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                                     hasBuild = true;
                                 }
@@ -446,7 +459,7 @@ public class RoadEnabled {
                 }
             }
         }
-        
+
         // build stairs
         if (hasBuilt && y - oldY != 0) {
             RoadPart stairs = road.getStairs();
@@ -467,7 +480,7 @@ public class RoadEnabled {
                     int typeId = layer.getTypeId(j);
                     if (typeId != -1) {
                         Block b = world.getBlockAt(newX, newY, newZ);
-                        undo.putBlock(b);
+                        //undo.putBlock(b);
                         b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                     }
 
@@ -507,7 +520,9 @@ public class RoadEnabled {
                         int typeId = layer.getTypeId(j);
                         if (typeId != -1) {
                             Block b = world.getBlockAt(newX, newY, newZ);
-                            undo.putBlock(b);
+                            if (typeId != 0 || b.getTypeId() != 0) {
+                                undo.putBlock(b);
+                            }
                             b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                         }
 
@@ -520,7 +535,7 @@ public class RoadEnabled {
                 break;
             }
         }
-        
+
         // build pillars
         if (pillar != null && groundLayer != -1) {
             pmax = pillar.getPartsSize();
@@ -550,9 +565,10 @@ public class RoadEnabled {
                             int typeId = layer.getTypeId(j);
                             if (typeId != -1) {
                                 Block b = world.getBlockAt(newX, newY, newZ);
-                                int bType = b.getTypeId();
-                                if (bType == 0 || (bType >= 8 && bType <= 11) || bType == 31 || bType == 32) {
-                                    undo.putBlock(b);
+                                if (!isToIgnore(b)) {
+                                    if (typeId != 0 || b.getTypeId() != 0) {
+                                        undo.putBlock(b);
+                                    }
                                     b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                                     hasBuild = true;
                                 }
@@ -569,7 +585,7 @@ public class RoadEnabled {
                 }
             }
         }
-        
+
         // build stairs
         if (hasBuilt && y - oldY != 0) {
             RoadPart stairs = road.getStairs();
@@ -590,7 +606,7 @@ public class RoadEnabled {
                     int typeId = layer.getTypeId(j);
                     if (typeId != -1) {
                         Block b = world.getBlockAt(newX, newY, newZ);
-                        undo.putBlock(b);
+                        //undo.putBlock(b);
                         b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                     }
 
@@ -625,5 +641,21 @@ public class RoadEnabled {
 
     public void setTunnel(boolean tunnel) {
         this.tunnel = tunnel;
+    }
+
+    public boolean isToIgnore(Block b) {
+        int i = b.getTypeId();
+
+        return i == 0
+                || i == 6
+                || (i >= 30 && i <= 32)
+                || (i >= 37 && i <= 40)
+                || i == 50
+                || i == 51
+                || i == 55
+                || i == 59
+                || i == 70
+                || i == 72
+                || i == 78;
     }
 }

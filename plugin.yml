@@ -1,5 +1,5 @@
 main: com.creadri.lazyroad.LazyRoad
-version: 0.4
+version: 0.4.2
 name: LazyRoad
 commands:
   road:
