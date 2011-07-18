@@ -1,31 +1,59 @@
 package com.creadri.lazyroad;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+
 /**
  *
  * @author creadri
  */
-public class Road {
-    private RoadPart[] parts;
-    private int partsSize;
+public class Road implements Serializable {
+    private ArrayList<RoadPart> parts;
     private int maxGradient;
     private RoadPart stairs;
     private int maxSequence;
 
+    public Road() {
+        this.parts = new ArrayList<RoadPart>();
+    }
+    
     public Road(int partsSize) {
-        this.partsSize = partsSize;
-        this.parts = new RoadPart[partsSize];
+        this.parts = new ArrayList<RoadPart>(partsSize);
     }
 
-    public int getPartsSize() {
-        return partsSize;
+    public int size() {
+        return parts.size();
     }
     
     public RoadPart getRoadPart(int index) {
-        return parts[index];
+        return parts.get(index);
     }
     
     public void setRoadPart(int index, RoadPart part) {
-        parts[index] = part;
+        parts.set(index, part);
+        Collections.sort(parts);
+        maxSequence = parts.get(0).getRepeatEvery();
+    }
+    
+    public void removeRoadPart(RoadPart part) {
+        parts.remove(part);
+    }
+    
+    public boolean addRoadPart(RoadPart part) {
+        
+        int index = Collections.binarySearch(parts, part);
+        
+        if (index >= 0) {
+            return false;
+        }
+        
+        parts.add(part);
+        Collections.sort(parts);
+        maxSequence = parts.get(0).getRepeatEvery();
+        
+        return true;
     }
 
     public void setMaxGradient(int maxGradient) {
@@ -50,5 +78,29 @@ public class Road {
 
     public void setMaxSequence(int maxSequence) {
         this.maxSequence = maxSequence;
+    }
+
+    public ArrayList<RoadPart> getParts() {
+        return parts;
+    }
+
+    public void setParts(ArrayList<RoadPart> parts) {
+        this.parts = parts;
+    }
+    
+    public RoadPart getRoadPartToBuild(int count) {
+        count %= maxSequence;
+        
+        Iterator<RoadPart> itRoadPart = parts.iterator();
+        
+        while (itRoadPart.hasNext()) {
+            RoadPart rp = itRoadPart.next();
+            
+            if (rp.isToBuild(count)) {
+                return rp;
+            }
+        }
+        
+        return null;
     }
 }

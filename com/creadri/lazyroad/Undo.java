@@ -66,7 +66,7 @@ public class Undo {
     
     public void undo() {
         
-        for (int i = 0; i < current; i++) {
+        for (int i = current - 1; i >= 0; i--) {
             Block b = world.getBlockAt(xs[i], ys[i], zs[i]);
             b.setTypeIdAndData(ids[i], datas[i], false);
         }

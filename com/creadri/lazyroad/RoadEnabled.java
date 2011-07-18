@@ -1,5 +1,6 @@
 package com.creadri.lazyroad;
 
+import creadri.util.Messages;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -16,9 +17,9 @@ public class RoadEnabled {
     private int lastBuiltStairs = -1;
     private boolean hasBuilt = false;
     private boolean tunnel = false;
-    private int oldX = -1;
-    private int oldY = -1;
-    private int oldZ = -1;
+    private int oldX = Integer.MIN_VALUE;
+    private int oldY = Integer.MIN_VALUE;
+    private int oldZ = Integer.MIN_VALUE;
     private Undo undo;
 
     public RoadEnabled(Road road, World world) {
@@ -45,13 +46,20 @@ public class RoadEnabled {
         World world = player.getWorld();
 
         // get the first block underneath the player
-
-        while (isToIgnore(world.getBlockAt(x, y, z))) {
+        int ymin = y - 2 - road.getMaxGradient();
+        if (ymin <= 0) {
+            ymin = 1;
+        }
+        while (y >= ymin && isToIgnore(world.getBlockAt(x, y, z))) {
             y--;
         }
 
-        // to stop stair bugs
-        if (hasBuilt && (oldY - y) != 0) {
+
+        if (hasBuilt && tunnel) {
+            // for tunnel mode, always keep old Y
+            y = oldY;
+        } else if (hasBuilt && (oldY - y) != 0) {
+            // limit the y value for stairs to apply correctly
             if ((count - lastBuiltStairs) < road.getMaxGradient()) {
                 y = oldY;
             } else if (oldY - y > 1) {
@@ -59,10 +67,6 @@ public class RoadEnabled {
             } else if (y - oldY > 1) {
                 y = oldY + 1;
             }
-        }
-        // for tunnel mode
-        if (hasBuilt && tunnel) {
-            y = oldY;
         }
 
         // get the direction of the player N, S, W, E
@@ -84,6 +88,7 @@ public class RoadEnabled {
             if (hasBuilt && (oldX - x) <= 0) {
                 return;
             }
+
             drawNorth(world, x, y, z, tunnel);
 
         } else if (rot >= 135 && rot < 225) {
@@ -99,6 +104,7 @@ public class RoadEnabled {
             if (hasBuilt && (x - oldX) <= 0) {
                 return;
             }
+
             drawSouth(world, x, y, z, tunnel);
 
         } else {
@@ -113,514 +119,644 @@ public class RoadEnabled {
         hasBuilt = true;
 
         count++;
+
+        if (count % 20 == 0) {
+            String msg = LazyRoad.messages.getMessage("roadCount");
+            msg = Messages.setField(msg, "%blocks%", Integer.toString(count));
+            player.sendMessage(msg);
+        }
     }
 
-    private int drawNorth(World world, int x, int y, int z, boolean tunnel) {
+    private void drawNorth(World world, int x, int y, int z, boolean tunnel) {
+        /**
+         * DRAWING ROAD MAIN PART
+         */
+        RoadPart part = road.getRoadPartToBuild(count);
 
-        int groundLayer = -1;
-        int pmax = road.getPartsSize();
-        for (int p = 0; p < pmax; p++) {
-            RoadPart part = road.getRoadPart(p);
-            if (part.isToBuild(count, road.getMaxSequence())) {
-                groundLayer = part.getGroundLayer();
-                int newX = tunnel ? x - 1 : x;
-                int newY = y - part.getGroundLayer();
-                int newZ = z;
+        if (part == null) {
+            return;
+        }
 
-                // build all layers
-                int imax = part.getLayerSize();
-                for (int i = 0; i < imax; i++) {
-                    Layer layer = part.getLayer(i);
+        int groundLayer = part.getGroundLayer();
+        // new coords
+        int newX = tunnel ? x - 1 : x;
+        int newY = y - part.getGroundLayer();
+        int newZ = z;
+        // information about the array of informations
+        int height = part.getHeight();
+        int width = part.getWidth();
 
-                    int jmax = layer.getSize();
-                    //left
-                    newZ = z + (jmax / 2);
+        int[][] ids = part.getIds();
+        byte[][] datas = part.getDatas();
 
-                    for (int j = 0; j < jmax; j++) {
-                        int typeId = layer.getTypeId(j);
-                        if (typeId != -1) {
-                            Block b = world.getBlockAt(newX, newY, newZ);
-                            if (typeId != 0 || b.getTypeId() != 0) {
-                                undo.putBlock(b);
-                            }
-                            b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
+        for (int i = 0; i < height; i++) {
+
+            // go to the left
+            newZ = z + (width / 2);
+
+            for (int j = 0; j < width; j++) {
+
+                // the block to place
+                int id = ids[i][j];
+                byte data = datas[i][j];
+
+                if (id != -1) {
+                    // replace the block
+                    Block block = world.getBlockAt(newX, newY, newZ);
+                    // memorize for undo operation
+                    if (id != 0 || block.getTypeId() != 0) {
+                        // only place if it's non-air
+                        undo.putBlock(block);
+                        block.setTypeIdAndData(id, data, false);
+                    }
+                }
+
+                newZ--;
+            }
+            newY++;
+        }
+
+
+        /**
+         * DRAWING STAIRS
+         */
+        if (hasBuilt && y - oldY != 0) {
+
+            RoadPart stairs = road.getStairs();
+
+            newX = tunnel ? x - 1 : x;
+            newY = (y - oldY) > 0 ? y : y + 1;
+            newZ = z;
+
+            height = stairs.getHeight();
+            width = stairs.getWidth();
+
+            ids = stairs.getIds();
+            datas = stairs.getDatas();
+
+            for (int i = 0; i < height; i++) {
+
+                // go to the left
+                newZ = z + (width / 2);
+
+                for (int j = 0; j < width; j++) {
+
+                    // the block to place
+                    int id = ids[i][j];
+                    byte data = datas[i][j];
+
+                    if (id != -1) {
+                        // replace the block
+                        Block block = world.getBlockAt(newX, newY, newZ);
+                        if (id != 0 || block.getTypeId() != 0) {
+                            // only place if it's non-air
+                            undo.putBlock(block);
+                            block.setTypeIdAndData(id, data, false);
                         }
-
-                        //to right
-                        newZ--;
                     }
 
-                    newY++;
+                    newZ--;
                 }
-                break;
+                newY++;
             }
+
+            lastBuiltStairs = count;
         }
 
-        // build pillars
-        if (pillar != null && groundLayer != -1) {
-            pmax = pillar.getPartsSize();
-            for (int p = 0; p < pmax; p++) {
-                PillarPart part = pillar.getPillarPart(p);
 
-                if (part.isToBuild(count, pillar.getMaxSequence())) {
-                    int newX = tunnel ? x - 1 : x;
-                    int newY = y - groundLayer - 1;
-                    int newZ = z;
+        /**
+         * DRAWING PILLARS
+         */
+        if (pillar != null) {
 
-                    int buildUntil = part.getBuildUntil();
+            PillarPart pillarPart = pillar.getRoadPartToBuild(count);
 
-                    // build the pillar
-                    int imax = part.getLayerSize();
-                    int i = 0;
-                    boolean hasBuild = false;
-                    do {
-                        Layer layer = part.getLayer(i % imax);
+            if (pillarPart == null) {
+                return;
+            }
 
-                        int jmax = layer.getSize();
-                        //left
-                        newZ = z + (jmax / 2);
-                        hasBuild = false;
+            newX = tunnel ? x - 1 : x;
+            newY = y - groundLayer - 1;
+            newZ = z;
 
-                        for (int j = 0; j < jmax; j++) {
-                            int typeId = layer.getTypeId(j);
-                            if (typeId != -1) {
-                                Block b = world.getBlockAt(newX, newY, newZ);
-                                if (!isToIgnore(b)) {
-                                    if (typeId != 0 || b.getTypeId() != 0) {
-                                        undo.putBlock(b);
-                                    }
-                                    b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
-                                    hasBuild = true;
-                                }
+            int buildUntil = pillarPart.getBuildUntil();
+            if (buildUntil == 0) {
+                buildUntil = Integer.MAX_VALUE;
+            }
+
+            height = pillarPart.getHeight();
+            width = pillarPart.getWidth();
+
+            ids = pillarPart.getIds();
+            datas = pillarPart.getDatas();
+
+
+            // build the pillar
+            int i = 0;
+            boolean buildBlock = false;
+            do {
+                // go to the left
+                newZ = z + (width / 2);
+
+                buildBlock = false;
+
+                for (int j = 0; j < width; j++) {
+                    // getting the block information
+                    int id = ids[i % height][j];
+                    byte data = datas[i % height][j];
+
+                    if (id != -1) {
+                        Block block = world.getBlockAt(newX, newY, newZ);
+                        if (isToIgnore(block)) {
+                            if (id != 0 || block.getTypeId() != 0) {
+                                undo.putBlock(block);
+                                block.setTypeIdAndData(id, data, false);
+                                buildBlock = true;
                             }
-
-                            //to right
-                            newZ--;
                         }
-                        buildUntil--;
-                        newY--;
-                    } while (hasBuild && buildUntil > 0 && newY > 0);
-
-                    break;
-                }
-            }
-        }
-
-        // build stairs
-        if (hasBuilt && y - oldY != 0) {
-            RoadPart stairs = road.getStairs();
-            int newX = tunnel ? x - 1 : x;
-            int newY = (y - oldY) > 0 ? y : y + 1;
-            int newZ = z;
-
-            // build all layers
-            int imax = stairs.getLayerSize();
-            for (int i = 0; i < imax; i++) {
-                Layer layer = stairs.getLayer(i);
-
-                int jmax = layer.getSize();
-                //left
-                newZ = z + (jmax / 2);
-
-                for (int j = 0; j < jmax; j++) {
-                    int typeId = layer.getTypeId(j);
-                    if (typeId != -1) {
-                        Block b = world.getBlockAt(newX, newY, newZ);
-                        //undo.putBlock(b);
-                        b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                     }
 
                     //to right
                     newZ--;
                 }
+                buildUntil--;
+                newY--;
+            } while (buildBlock && buildUntil > 0 && newY > 0);
+        }
+    }
 
+    private void drawSouth(World world, int x, int y, int z, boolean tunnel) {
+        /**
+         * DRAWING ROAD MAIN PART
+         */
+        RoadPart part = road.getRoadPartToBuild(count);
+
+        if (part == null) {
+            return;
+        }
+
+        int groundLayer = part.getGroundLayer();
+        // new coords
+        int newX = tunnel ? x + 1 : x;
+        int newY = y - part.getGroundLayer();
+        int newZ = z;
+        // information about the array of informations
+        int height = part.getHeight();
+        int width = part.getWidth();
+
+        int[][] ids = part.getIds();
+        byte[][] datas = part.getDatas();
+
+        for (int i = 0; i < height; i++) {
+
+            // go to the left
+            newZ = z - (width / 2);
+
+            for (int j = 0; j < width; j++) {
+
+                // the block to place
+                int id = ids[i][j];
+                byte data = datas[i][j];
+
+                if (id != -1) {
+                    // replace the block
+                    Block block = world.getBlockAt(newX, newY, newZ);
+                    // memorize for undo operation
+                    if (id != 0 || block.getTypeId() != 0) {
+                        // only place if it's non-air
+                        undo.putBlock(block);
+                        block.setTypeIdAndData(id, data, false);
+                    }
+                }
+
+                newZ++;
+            }
+            newY++;
+        }
+
+
+        /**
+         * DRAWING STAIRS
+         */
+        if (hasBuilt && y - oldY != 0) {
+
+            RoadPart stairs = road.getStairs();
+
+            newX = tunnel ? x + 1 : x;
+            newY = (y - oldY) > 0 ? y : y + 1;
+            newZ = z;
+
+            height = stairs.getHeight();
+            width = stairs.getWidth();
+
+            ids = stairs.getIds();
+            datas = stairs.getDatas();
+
+            for (int i = 0; i < height; i++) {
+
+                // go to the left
+                newZ = z - (width / 2);
+
+                for (int j = 0; j < width; j++) {
+
+                    // the block to place
+                    int id = ids[i][j];
+                    byte data = datas[i][j];
+
+                    if (id != -1) {
+                        // replace the block
+                        Block block = world.getBlockAt(newX, newY, newZ);
+                        if (id != 0 || block.getTypeId() != 0) {
+                            // only place if it's non-air
+                            undo.putBlock(block);
+                            block.setTypeIdAndData(id, data, false);
+                        }
+                    }
+
+                    newZ++;
+                }
                 newY++;
             }
 
             lastBuiltStairs = count;
         }
 
-        return groundLayer;
-    }
 
-    private int drawSouth(World world, int x, int y, int z, boolean tunnel) {
-        int groundLayer = -1;
-        int pmax = road.getPartsSize();
-        for (int p = 0; p < pmax; p++) {
-            RoadPart part = road.getRoadPart(p);
-            if (part.isToBuild(count, road.getMaxSequence())) {
-                groundLayer = part.getGroundLayer();
-                int newX = tunnel ? x + 1 : x;
-                int newY = y - part.getGroundLayer();
-                int newZ = z;
+        /**
+         * DRAWING PILLARS
+         */
+        if (pillar != null) {
 
-                // build all layers
-                int imax = part.getLayerSize();
-                for (int i = 0; i < imax; i++) {
-                    Layer layer = part.getLayer(i);
+            PillarPart pillarPart = pillar.getRoadPartToBuild(count);
 
-                    int jmax = layer.getSize();
-                    //left
-                    newZ = z - (jmax / 2);
-
-                    for (int j = 0; j < jmax; j++) {
-                        int typeId = layer.getTypeId(j);
-                        if (typeId != -1) {
-                            Block b = world.getBlockAt(newX, newY, newZ);
-                            if (typeId != 0 || b.getTypeId() != 0) {
-                                undo.putBlock(b);
-                            }
-                            b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
-                        }
-
-                        //to right
-                        newZ++;
-                    }
-
-                    newY++;
-                }
-                break;
+            if (pillarPart == null) {
+                return;
             }
-        }
 
-        // build pillars
-        if (pillar != null && groundLayer != -1) {
-            pmax = pillar.getPartsSize();
-            for (int p = 0; p < pmax; p++) {
-                PillarPart part = pillar.getPillarPart(p);
+            newX = tunnel ? x + 1 : x;
+            newY = y - groundLayer - 1;
+            newZ = z;
 
-                if (part.isToBuild(count, pillar.getMaxSequence())) {
-                    int newX = tunnel ? x - 1 : x;
-                    int newY = y - groundLayer - 1;
-                    int newZ = z;
-
-                    int buildUntil = part.getBuildUntil();
-
-                    // build the pillar
-                    int imax = part.getLayerSize();
-                    int i = 0;
-                    boolean hasBuild = false;
-                    do {
-                        Layer layer = part.getLayer(i % imax);
-
-                        int jmax = layer.getSize();
-                        //left
-                        newZ = z - (jmax / 2);
-                        hasBuild = false;
-
-                        for (int j = 0; j < jmax; j++) {
-                            int typeId = layer.getTypeId(j);
-                            if (typeId != -1) {
-                                Block b = world.getBlockAt(newX, newY, newZ);
-                                if (!isToIgnore(b)) {
-                                    if (typeId != 0 || b.getTypeId() != 0) {
-                                        undo.putBlock(b);
-                                    }
-                                    b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
-                                    hasBuild = true;
-                                }
-                            }
-
-                            //to right
-                            newZ++;
-                        }
-                        buildUntil--;
-                        newY--;
-                    } while (hasBuild && buildUntil > 0 && newY > 0);
-
-                    break;
-                }
+            int buildUntil = pillarPart.getBuildUntil();
+            if (buildUntil == 0) {
+                buildUntil = Integer.MAX_VALUE;
             }
-        }
 
-        // build stairs
-        if (hasBuilt && y - oldY != 0) {
-            RoadPart stairs = road.getStairs();
-            int newX = tunnel ? x - 1 : x;
-            int newY = (y - oldY) > 0 ? y : y + 1;
-            int newZ = z;
+            height = pillarPart.getHeight();
+            width = pillarPart.getWidth();
 
-            // build all layers
-            int imax = stairs.getLayerSize();
-            for (int i = 0; i < imax; i++) {
-                Layer layer = stairs.getLayer(i);
+            ids = pillarPart.getIds();
+            datas = pillarPart.getDatas();
 
-                int jmax = layer.getSize();
-                //left
-                newZ = z - (jmax / 2);
 
-                for (int j = 0; j < jmax; j++) {
-                    int typeId = layer.getTypeId(j);
-                    if (typeId != -1) {
-                        Block b = world.getBlockAt(newX, newY, newZ);
-                        //undo.putBlock(b);
-                        b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
+            // build the pillar
+            int i = 0;
+            boolean buildBlock = false;
+            do {
+                // go to the left
+                newZ = z - (width / 2);
+
+                buildBlock = false;
+
+                for (int j = 0; j < width; j++) {
+                    // getting the block information
+                    int id = ids[i % height][j];
+                    byte data = datas[i % height][j];
+
+                    if (id != -1) {
+                        Block block = world.getBlockAt(newX, newY, newZ);
+                        if (isToIgnore(block)) {
+                            if (id != 0 || block.getTypeId() != 0) {
+                                undo.putBlock(block);
+                                block.setTypeIdAndData(id, data, false);
+                                buildBlock = true;
+                            }
+                        }
                     }
 
                     //to right
                     newZ++;
                 }
+                buildUntil--;
+                newY--;
+            } while (buildBlock && buildUntil > 0 && newY > 0);
+        }
+    }
 
+    private void drawWest(World world, int x, int y, int z, boolean tunnel) {
+        /**
+         * DRAWING ROAD MAIN PART
+         */
+        RoadPart part = road.getRoadPartToBuild(count);
+
+        if (part == null) {
+            return;
+        }
+
+        int groundLayer = part.getGroundLayer();
+        // new coords
+        int newX = x;
+        int newY = y - part.getGroundLayer();
+        int newZ = tunnel ? z + 1 : z;
+        // information about the array of informations
+        int height = part.getHeight();
+        int width = part.getWidth();
+
+        int[][] ids = part.getIds();
+        byte[][] datas = part.getDatas();
+
+        for (int i = 0; i < height; i++) {
+
+            // go to the left
+            newX = x + (width / 2);
+
+            for (int j = 0; j < width; j++) {
+
+                // the block to place
+                int id = ids[i][j];
+                byte data = datas[i][j];
+
+                if (id != -1) {
+                    // replace the block
+                    Block block = world.getBlockAt(newX, newY, newZ);
+                    // memorize for undo operation
+                    if (id != 0 || block.getTypeId() != 0) {
+                        // only place if it's non-air
+                        undo.putBlock(block);
+                        block.setTypeIdAndData(id, data, false);
+                    }
+                }
+
+                newX--;
+            }
+            newY++;
+        }
+
+
+        /**
+         * DRAWING STAIRS
+         */
+        if (hasBuilt && y - oldY != 0) {
+
+            RoadPart stairs = road.getStairs();
+
+            newX = x;
+            newY = (y - oldY) > 0 ? y : y + 1;
+            newZ = tunnel ? z + 1 : z;
+
+            height = stairs.getHeight();
+            width = stairs.getWidth();
+
+            ids = stairs.getIds();
+            datas = stairs.getDatas();
+
+            for (int i = 0; i < height; i++) {
+
+                // go to the left
+                newX = x + (width / 2);
+
+                for (int j = 0; j < width; j++) {
+
+                    // the block to place
+                    int id = ids[i][j];
+                    byte data = datas[i][j];
+
+                    if (id != -1) {
+                        // replace the block
+                        Block block = world.getBlockAt(newX, newY, newZ);
+                        if (id != 0 || block.getTypeId() != 0) {
+                            // only place if it's non-air
+                            undo.putBlock(block);
+                            block.setTypeIdAndData(id, data, false);
+                        }
+                    }
+
+                    newX--;
+                }
                 newY++;
             }
 
             lastBuiltStairs = count;
         }
 
-        return groundLayer;
-    }
 
-    private int drawEast(World world, int x, int y, int z, boolean tunnel) {
-        int groundLayer = -1;
-        int pmax = road.getPartsSize();
-        for (int p = 0; p < pmax; p++) {
-            RoadPart part = road.getRoadPart(p);
-            if (part.isToBuild(count, road.getMaxSequence())) {
-                groundLayer = part.getGroundLayer();
-                int newX = x;
-                int newY = y - part.getGroundLayer();
-                int newZ = tunnel ? z - 1 : z;
+        /**
+         * DRAWING PILLARS
+         */
+        if (pillar != null) {
 
-                // build all layers
-                int imax = part.getLayerSize();
-                for (int i = 0; i < imax; i++) {
-                    Layer layer = part.getLayer(i);
+            PillarPart pillarPart = pillar.getRoadPartToBuild(count);
 
-                    int jmax = layer.getSize();
-                    //left
-                    newX = x - (jmax / 2);
+            if (pillarPart == null) {
+                return;
+            }
 
-                    for (int j = 0; j < jmax; j++) {
-                        int typeId = layer.getTypeId(j);
-                        if (typeId != -1) {
-                            Block b = world.getBlockAt(newX, newY, newZ);
-                            if (typeId != 0 || b.getTypeId() != 0) {
-                                undo.putBlock(b);
+            newX = x;
+            newY = y - groundLayer - 1;
+            newZ = tunnel ? z + 1 : z;
+
+            int buildUntil = pillarPart.getBuildUntil();
+            if (buildUntil == 0) {
+                buildUntil = Integer.MAX_VALUE;
+            }
+
+            height = pillarPart.getHeight();
+            width = pillarPart.getWidth();
+
+            ids = pillarPart.getIds();
+            datas = pillarPart.getDatas();
+
+
+            // build the pillar
+            int i = 0;
+            boolean buildBlock = false;
+            do {
+                // go to the left
+                newX = x + (width / 2);
+
+                buildBlock = false;
+
+                for (int j = 0; j < width; j++) {
+                    // getting the block information
+                    int id = ids[i % height][j];
+                    byte data = datas[i % height][j];
+
+                    if (id != -1) {
+                        Block block = world.getBlockAt(newX, newY, newZ);
+                        if (isToIgnore(block)) {
+                            if (id != 0 || block.getTypeId() != 0) {
+                                undo.putBlock(block);
+                                block.setTypeIdAndData(id, data, false);
+                                buildBlock = true;
                             }
-                            b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                         }
-
-                        //to right
-                        newX++;
-                    }
-
-                    newY++;
-                }
-                break;
-            }
-        }
-
-        // build pillars
-        if (pillar != null && groundLayer != -1) {
-            pmax = pillar.getPartsSize();
-            for (int p = 0; p < pmax; p++) {
-                PillarPart part = pillar.getPillarPart(p);
-
-                if (part.isToBuild(count, pillar.getMaxSequence())) {
-                    int newX = x;
-                    int newY = y - groundLayer - 1;
-                    int newZ = tunnel ? z - 1 : z;
-
-                    int buildUntil = part.getBuildUntil();
-
-                    // build the pillar
-                    int imax = part.getLayerSize();
-                    int i = 0;
-                    boolean hasBuild = false;
-                    do {
-                        Layer layer = part.getLayer(i % imax);
-
-                        int jmax = layer.getSize();
-                        //left
-                        newX = x - (jmax / 2);
-                        hasBuild = false;
-
-                        for (int j = 0; j < jmax; j++) {
-                            int typeId = layer.getTypeId(j);
-                            if (typeId != -1) {
-                                Block b = world.getBlockAt(newX, newY, newZ);
-                                if (!isToIgnore(b)) {
-                                    if (typeId != 0 || b.getTypeId() != 0) {
-                                        undo.putBlock(b);
-                                    }
-                                    b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
-                                    hasBuild = true;
-                                }
-                            }
-
-                            //to right
-                            newX++;
-                        }
-                        buildUntil--;
-                        newY--;
-                    } while (hasBuild && buildUntil > 0 && newY > 0);
-
-                    break;
-                }
-            }
-        }
-
-        // build stairs
-        if (hasBuilt && y - oldY != 0) {
-            RoadPart stairs = road.getStairs();
-            int newX = x;
-            int newY = (y - oldY) > 0 ? y : y + 1;
-            int newZ = tunnel ? z - 1 : z;
-
-            // build all layers
-            int imax = stairs.getLayerSize();
-            for (int i = 0; i < imax; i++) {
-                Layer layer = stairs.getLayer(i);
-
-                int jmax = layer.getSize();
-                //left
-                newX = x - (jmax / 2);
-
-                for (int j = 0; j < jmax; j++) {
-                    int typeId = layer.getTypeId(j);
-                    if (typeId != -1) {
-                        Block b = world.getBlockAt(newX, newY, newZ);
-                        //undo.putBlock(b);
-                        b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
-                    }
-
-                    //to right
-                    newX++;
-                }
-
-                newY++;
-            }
-
-            lastBuiltStairs = count;
-        }
-        return groundLayer;
-    }
-
-    private int drawWest(World world, int x, int y, int z, boolean tunnel) {
-        int groundLayer = -1;
-        int pmax = road.getPartsSize();
-        for (int p = 0; p < pmax; p++) {
-            RoadPart part = road.getRoadPart(p);
-            if (part.isToBuild(count, road.getMaxSequence())) {
-                groundLayer = part.getGroundLayer();
-                int newX = x;
-                int newY = y - part.getGroundLayer();
-                int newZ = tunnel ? z + 1 : z;
-
-                // build all layers
-                int imax = part.getLayerSize();
-                for (int i = 0; i < imax; i++) {
-                    Layer layer = part.getLayer(i);
-
-                    int jmax = layer.getSize();
-                    //left
-                    newX = x + (jmax / 2);
-
-                    for (int j = 0; j < jmax; j++) {
-                        int typeId = layer.getTypeId(j);
-                        if (typeId != -1) {
-                            Block b = world.getBlockAt(newX, newY, newZ);
-                            if (typeId != 0 || b.getTypeId() != 0) {
-                                undo.putBlock(b);
-                            }
-                            b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
-                        }
-
-                        //to right
-                        newX--;
-                    }
-
-                    newY++;
-                }
-                break;
-            }
-        }
-
-        // build pillars
-        if (pillar != null && groundLayer != -1) {
-            pmax = pillar.getPartsSize();
-            for (int p = 0; p < pmax; p++) {
-                PillarPart part = pillar.getPillarPart(p);
-
-                if (part.isToBuild(count, pillar.getMaxSequence())) {
-                    int newX = x;
-                    int newY = y - groundLayer - 1;
-                    int newZ = tunnel ? z + 1 : z;
-
-                    int buildUntil = part.getBuildUntil();
-
-                    // build the pillar
-                    int imax = part.getLayerSize();
-                    int i = 0;
-                    boolean hasBuild = false;
-                    do {
-                        Layer layer = part.getLayer(i % imax);
-
-                        int jmax = layer.getSize();
-                        //left
-                        newX = x + (jmax / 2);
-                        hasBuild = false;
-
-                        for (int j = 0; j < jmax; j++) {
-                            int typeId = layer.getTypeId(j);
-                            if (typeId != -1) {
-                                Block b = world.getBlockAt(newX, newY, newZ);
-                                if (!isToIgnore(b)) {
-                                    if (typeId != 0 || b.getTypeId() != 0) {
-                                        undo.putBlock(b);
-                                    }
-                                    b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
-                                    hasBuild = true;
-                                }
-                            }
-
-                            //to right
-                            newX--;
-                        }
-                        buildUntil--;
-                        newY--;
-                    } while (hasBuild && buildUntil > 0 && newY > 0);
-
-                    break;
-                }
-            }
-        }
-
-        // build stairs
-        if (hasBuilt && y - oldY != 0) {
-            RoadPart stairs = road.getStairs();
-            int newX = x;
-            int newY = (y - oldY) > 0 ? y : y + 1;
-            int newZ = tunnel ? z + 1 : z;
-
-            // build all layers
-            int imax = stairs.getLayerSize();
-            for (int i = 0; i < imax; i++) {
-                Layer layer = stairs.getLayer(i);
-
-                int jmax = layer.getSize();
-                //left
-                newX = x + (jmax / 2);
-
-                for (int j = 0; j < jmax; j++) {
-                    int typeId = layer.getTypeId(j);
-                    if (typeId != -1) {
-                        Block b = world.getBlockAt(newX, newY, newZ);
-                        //undo.putBlock(b);
-                        b.setTypeIdAndData(typeId, (byte) layer.getDurability(j), false);
                     }
 
                     //to right
                     newX--;
                 }
+                buildUntil--;
+                newY--;
+            } while (buildBlock && buildUntil > 0 && newY > 0);
+        }
+    }
 
+    private void drawEast(World world, int x, int y, int z, boolean tunnel) {
+        /**
+         * DRAWING ROAD MAIN PART
+         */
+        RoadPart part = road.getRoadPartToBuild(count);
+
+        if (part == null) {
+            return;
+        }
+
+        int groundLayer = part.getGroundLayer();
+        // new coords
+        int newX = x;
+        int newY = y - part.getGroundLayer();
+        int newZ = tunnel ? z - 1 : z;
+        // information about the array of informations
+        int height = part.getHeight();
+        int width = part.getWidth();
+
+        int[][] ids = part.getIds();
+        byte[][] datas = part.getDatas();
+
+        for (int i = 0; i < height; i++) {
+
+            // go to the left
+            newX = x - (width / 2);
+
+            for (int j = 0; j < width; j++) {
+
+                // the block to place
+                int id = ids[i][j];
+                byte data = datas[i][j];
+
+                if (id != -1) {
+                    // replace the block
+                    Block block = world.getBlockAt(newX, newY, newZ);
+                    // memorize for undo operation
+                    if (id != 0 || block.getTypeId() != 0) {
+                        // only place if it's non-air
+                        undo.putBlock(block);
+                        block.setTypeIdAndData(id, data, false);
+                    }
+                }
+
+                newX++;
+            }
+            newY++;
+        }
+
+
+        /**
+         * DRAWING STAIRS
+         */
+        if (hasBuilt && y - oldY != 0) {
+
+            RoadPart stairs = road.getStairs();
+
+            newX = x;
+            newY = (y - oldY) > 0 ? y : y + 1;
+            newZ = tunnel ? z - 1 : z;
+
+            height = stairs.getHeight();
+            width = stairs.getWidth();
+
+            ids = stairs.getIds();
+            datas = stairs.getDatas();
+
+            for (int i = 0; i < height; i++) {
+
+                // go to the left
+                newX = x - (width / 2);
+
+                for (int j = 0; j < width; j++) {
+
+                    // the block to place
+                    int id = ids[i][j];
+                    byte data = datas[i][j];
+
+                    if (id != -1) {
+                        // replace the block
+                        Block block = world.getBlockAt(newX, newY, newZ);
+                        if (id != 0 || block.getTypeId() != 0) {
+                            // only place if it's non-air
+                            undo.putBlock(block);
+                            block.setTypeIdAndData(id, data, false);
+                        }
+                    }
+
+                    newX++;
+                }
                 newY++;
             }
 
             lastBuiltStairs = count;
         }
 
-        return groundLayer;
+
+        /**
+         * DRAWING PILLARS
+         */
+        if (pillar != null) {
+
+            PillarPart pillarPart = pillar.getRoadPartToBuild(count);
+
+            if (pillarPart == null) {
+                return;
+            }
+
+            newX = x;
+            newY = y - groundLayer - 1;
+            newZ = tunnel ? z - 1 : z;
+
+            int buildUntil = pillarPart.getBuildUntil();
+            if (buildUntil == 0) {
+                buildUntil = Integer.MAX_VALUE;
+            }
+
+            height = pillarPart.getHeight();
+            width = pillarPart.getWidth();
+
+            ids = pillarPart.getIds();
+            datas = pillarPart.getDatas();
+
+
+            // build the pillar
+            int i = 0;
+            boolean buildBlock = false;
+            do {
+                // go to the left
+                newX = x - (width / 2);
+
+                buildBlock = false;
+
+                for (int j = 0; j < width; j++) {
+                    // getting the block information
+                    int id = ids[i % height][j];
+                    byte data = datas[i % height][j];
+
+                    if (id != -1) {
+                        Block block = world.getBlockAt(newX, newY, newZ);
+                        if (isToIgnore(block)) {
+                            if (id != 0 || block.getTypeId() != 0) {
+                                undo.putBlock(block);
+                                block.setTypeIdAndData(id, data, false);
+                                buildBlock = true;
+                            }
+                        }
+                    }
+
+                    //to right
+                    newX++;
+                }
+                buildUntil--;
+                newY--;
+            } while (buildBlock && buildUntil > 0 && newY > 0);
+        }
     }
 
     public int getCount() {
@@ -648,6 +784,8 @@ public class RoadEnabled {
 
         return i == 0
                 || i == 6
+                || (i >= 8 && i <= 11)
+                || (i >= 17 && i <= 18)
                 || (i >= 30 && i <= 32)
                 || (i >= 37 && i <= 40)
                 || i == 50

@@ -2,6 +2,7 @@ package com.creadri.lazyroad;
 
 import java.util.HashMap;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -23,7 +24,8 @@ public class LazyRoadPlayerListener extends PlayerListener {
         plugin = instance;
         builders = new HashMap<Player, RoadEnabled>();
         undoers = new HashMap<Player, RoadEnabled>();
-    }
+    }   
+    
 
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
