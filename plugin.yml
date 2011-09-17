@@ -30,9 +30,6 @@ commands:
       /<command> undo
       /<command> straight
 permissions:
-  LazyRoad.build:
+  lazyroad.build:
     default: op
     description: Allows users to build roads, bridges and tunnels.
-  LazyRoad.nogrief:
-    default: not op
-    description: Dissalow players to touch the road afterwards.
