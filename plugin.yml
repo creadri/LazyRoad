@@ -1,6 +1,7 @@
 main: com.creadri.lazyroad.LazyRoad
-version: 0.5.2
+version: 0.6
 name: LazyRoad
+description: Make roads as you walk
 author: adreide
 website: http://www.creadri.com
 commands:
@@ -11,6 +12,7 @@ commands:
       /<command> roadName [start count]
       /<command> stop
       /<command> undo
+      /<command> straight
   bridge:
     description: 'Make bridges.'
     usage: |
@@ -18,6 +20,7 @@ commands:
       /<command> roadName pillarName [start count]
       /<command> stop
       /<command> undo
+      /<command> straight
   tunnel:
     description: 'Make tunnels.'
     usage: |
@@ -25,7 +28,11 @@ commands:
       /<command> roadName [start count]
       /<command> stop
       /<command> undo
+      /<command> straight
 permissions:
   LazyRoad.build:
     default: op
     description: Allows users to build roads, bridges and tunnels.
+  LazyRoad.nogrief:
+    default: not op
+    description: Dissalow players to touch the road afterwards.

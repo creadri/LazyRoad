@@ -3,7 +3,6 @@ package com.creadri.lazyroad;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 
 /**
  *
@@ -89,15 +88,19 @@ public class Road implements Serializable {
     }
     
     public RoadPart getRoadPartToBuild(int count) {
-        count %= maxSequence;
+        count = (count % maxSequence) + 1;
         
-        Iterator<RoadPart> itRoadPart = parts.iterator();
-        
-        while (itRoadPart.hasNext()) {
-            RoadPart rp = itRoadPart.next();
-            
-            if (rp.isToBuild(count)) {
-                return rp;
+        for (RoadPart part : parts) {
+            int re = part.getRepeatEvery();
+            if (re == count) {
+                return part;
+            } else if (re < count) {
+                part = parts.get(parts.size() - 1);
+                if (part.getRepeatEvery() == 1) {
+                    return part;
+                } else {
+                    return null;
+                }
             }
         }
         

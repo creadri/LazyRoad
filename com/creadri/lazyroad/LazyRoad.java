@@ -1,12 +1,15 @@
 package com.creadri.lazyroad;
 
-import creadri.util.Messages;
+import com.creadri.util.ColumnChat;
+import com.creadri.util.FileManager;
+import com.creadri.util.Messages;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,27 +21,35 @@ import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.util.config.Configuration;
 
 /**
  * @author creadri
  */
 public class LazyRoad extends JavaPlugin {
-    
-    private final LazyRoadPlayerListener playerListener = new LazyRoadPlayerListener(this);
 
+    private final LazyRoadPlayerListener playerListener = new LazyRoadPlayerListener(this);
     private boolean eventRegistered = false;
+    // player properties
+    private HashSet<String> playerPropStraight = new HashSet<String>();
+    // roads and pillars
+    private HashMap<String, Road> roads = new HashMap<String, Road>();
+    private HashMap<String, Pillar> pillars = new HashMap<String, Pillar>();
+    // files related
     private File roadsDirectory;
     private File pillarsDirectory;
-    private HashMap<String, Road> roads;
-    private HashMap<String, Pillar> pillars;
-    /**
-     * A message class that is designed to load messages to have custom
-     * output.
-     */
-    public static Messages messages = new Messages();
-    /**
-     * The log of bukkit
-     */
+    private File undoSave;
+    private FilenameFilter filenameFilter = new FilenameFilter() {
+
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.endsWith(".ser");
+        }
+    };
+    // config and message related
+    private Configuration config;
+    
+    public static Messages messages;
     public static final Logger log = Logger.getLogger("Minecraft");
 
     /**
@@ -49,44 +60,51 @@ public class LazyRoad extends JavaPlugin {
         // configuration files
         try {
 
-            roadsDirectory = new File("./plugins/LazyRoad/roads");
-            if (!roadsDirectory.exists()) {
-                roadsDirectory.mkdirs();
+            roadsDirectory = new File(getDataFolder(), "roads");
+            pillarsDirectory = new File(getDataFolder(), "pillars");
+
+            if (!roadsDirectory.exists() || !pillarsDirectory.exists()) {
+                FileManager.copyDefaultRessources(getDataFolder(), "/com/creadri/lazyroad/", "defaultRoads.zip", "defaultPillars.zip");
             }
 
-            pillarsDirectory = new File("./plugins/LazyRoad/pillars");
-            if (!pillarsDirectory.exists()) {
-                pillarsDirectory.mkdirs();
+            // load roads and pillars
+            loadRoads();
+            loadPillars();
+
+            undoSave = new File(getDataFolder(), "undo.dat");
+
+            // load undo
+            playerListener.unSerializeRoadsUndos(undoSave);
+
+            // global configuration and messages
+            File configFile = new File(getDataFolder(), "config.yml");
+            if (!configFile.exists()) {
+                FileManager.copyDefaultRessource(getDataFolder(), "/com/creadri/lazyroad/config.yml", "config.yml");
             }
 
-            // messages file
-            File msgFile = new File("./plugins/LazyRoad/messages.properties");
-            if (!msgFile.exists() || !msgFile.isFile()) {
-                msgFile.createNewFile();
-            }
-            messages.loadMessages(msgFile);
+            config = new Configuration(configFile);
+            config.load();
+
+            messages = new Messages(this, config);
 
         } catch (IOException ex) {
-            log.log(Level.SEVERE, "[LazyRoad] : Error on Config File:" + ex.getMessage());
+
+            log.log(Level.SEVERE, "[LazyRoad] : Errors on files, stopping");
             return;
         }
 
         // Register events
         if (!eventRegistered) {
             PluginManager pm = getServer().getPluginManager();
-            pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
+            pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Lowest, this);
+            pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Priority.Lowest, this);
 
-            roads = new HashMap<String, Road>();
-            pillars = new HashMap<String, Pillar>();
-            
             eventRegistered = true;
 
             log.log(Level.INFO, "[LazyRoad] : Version " + getDescription().getVersion() + " is enabled!");
         }
 
-        // load roads and pillars
-        loadRoads();
-        loadPillars();
+
     }
 
     /**
@@ -94,6 +112,8 @@ public class LazyRoad extends JavaPlugin {
      */
     @Override
     public void onDisable() {
+        playerListener.serializeRoadsUndos(undoSave);
+
         log.info("[LazyRoad] : Plugin disabled");
     }
 
@@ -101,10 +121,12 @@ public class LazyRoad extends JavaPlugin {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (sender instanceof Player) {
-            
+
             Player player = (Player) sender;
-            if (!player.hasPermission("LazyRoad.build")) {
-                player.sendMessage(messages.getMessage("noPermissions"));
+            String splayer = player.getName();
+
+            if (!player.hasPermission("lazyroad.build")) {
+                messages.sendPlayerMessage(player, "messages.noPermission");
                 return true;
             }
 
@@ -112,35 +134,67 @@ public class LazyRoad extends JavaPlugin {
                 /**
                  * SUB-COMMAND LISTING
                  */
-                sendRoadPillarMessages(player);
+                sendRoadPillarMessages(player, 0);
+                
             } else if (args.length == 1 && args[0].equalsIgnoreCase("stop")) {
                 /**
                  * SUB-COMMAND STOP
                  */
-                RoadEnabled re = playerListener.removeBuilder(player);
+                RoadEnabled re = playerListener.removeBuilder(splayer);
                 if (re != null) {
-                    String msg = messages.getMessage("buildStop");
-                    msg = Messages.setField(msg, "%blocks%", Integer.toString(re.getCount()));
-                    player.sendMessage(msg);
+                    messages.sendPlayerMessage(player, "messages.buildStop", re.getCount());
                 }
 
                 return true;
+                
             } else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
                 /**
                  * SUB-COMMAND RELOAD
                  */
-                loadRoads();
-                loadPillars();
-                player.sendMessage(messages.getMessage("roadLoaded"));
+                try {
+                    loadRoads();
+                    loadPillars();
+                } catch (IOException ex) {
+                    messages.sendPlayerMessage(player, "messages.ioError");
+                }
+                messages.sendPlayerMessage(player, "messages.reload");
                 return true;
+                
             } else if (args.length == 1 && args[0].equalsIgnoreCase("undo")) {
                 /**
                  * SUB-COMMAND UNDO
                  */
-                playerListener.undo(player);
-                
-                player.sendMessage(messages.getMessage("undo"));
+                if (playerListener.undo(splayer)) {
+                    messages.sendPlayerMessage(player, "messages.undo");
+                } else {
+                    messages.sendPlayerMessage(player, "messages.undoError");
+                }
                 return true;
+                
+            } else if (args.length == 1 && args[0].equalsIgnoreCase("straight")) {
+                /**
+                 * SUB-COMMAND STRAIGHT
+                 */
+                if (playerPropStraight.contains(splayer)) {
+                    playerPropStraight.remove(splayer);
+                    messages.sendPlayerMessage(player, "messages.straightEnabled");
+                } else {
+                    playerPropStraight.add(splayer);
+                    messages.sendPlayerMessage(player, "messages.straightDisabled");
+                }
+
+                return true;
+                
+            } else if (args.length == 1) {
+                try {
+                    int page = Integer.parseInt(args[0]);
+
+                    sendRoadPillarMessages(player, page);
+
+                    return true;
+                } catch (NumberFormatException ex) {
+                    //
+                }
             }
 
 
@@ -151,11 +205,11 @@ public class LazyRoad extends JavaPlugin {
                 if (args.length > 0) {
                     Road road = roads.get(args[0]);
                     if (road == null) {
-                        player.sendMessage(messages.getMessage("noRoad"));
+                        messages.sendPlayerMessage(player, "messages.noRoad");
                         return true;
                     }
 
-                    RoadEnabled re = new RoadEnabled(road, player.getWorld());
+                    RoadEnabled re = new RoadEnabled(player, road);
                     int count = 1;
                     if (args.length > 1) {
                         try {
@@ -164,9 +218,17 @@ public class LazyRoad extends JavaPlugin {
                             count = 1;
                         }
                     }
-                    re.setCount(count);
+                    re.setCount(count - 1);
 
-                    playerListener.addBuilder(player, re);
+                    if (playerPropStraight.contains(splayer)) {
+                        re.setStraight(false);
+                    }
+
+                    if (playerListener.addBuilder(splayer, re)) {
+                        messages.sendPlayerMessage(player, "messages.beginBuilding");
+                    } else {
+                        messages.sendPlayerMessage(player, "messages.alreadyBuilding");
+                    }
                 }
 
             } else if (label.equals("tunnel")) {
@@ -176,11 +238,11 @@ public class LazyRoad extends JavaPlugin {
                 if (args.length > 0) {
                     Road road = roads.get(args[0]);
                     if (road == null) {
-                        player.sendMessage(messages.getMessage("noRoad"));
+                        messages.sendPlayerMessage(player, "messages.noRoad");
                         return true;
                     }
 
-                    RoadEnabled re = new RoadEnabled(road, player.getWorld());
+                    RoadEnabled re = new RoadEnabled(player, road);
                     int count = 1;
                     if (args.length > 1) {
                         try {
@@ -189,10 +251,18 @@ public class LazyRoad extends JavaPlugin {
                             count = 1;
                         }
                     }
-                    re.setCount(count);
+                    re.setCount(count - 1);
                     re.setTunnel(true);
 
-                    playerListener.addBuilder(player, re);
+                    if (playerPropStraight.contains(splayer)) {
+                        re.setStraight(false);
+                    }
+
+                    if (playerListener.addBuilder(splayer, re)) {
+                        messages.sendPlayerMessage(player, "messages.beginBuilding");
+                    } else {
+                        messages.sendPlayerMessage(player, "messages.alreadyBuilding");
+                    }
                 }
 
             } else if (label.equals("bridge")) {
@@ -202,17 +272,17 @@ public class LazyRoad extends JavaPlugin {
                 if (args.length > 1) {
                     Road road = roads.get(args[0]);
                     if (road == null) {
-                        player.sendMessage(messages.getMessage("noRoad"));
+                        messages.sendPlayerMessage(player, "messages.noRoad");
                         return true;
                     }
 
                     Pillar pillar = pillars.get(args[1]);
                     if (pillars == null) {
-                        player.sendMessage(messages.getMessage("noPillar"));
+                        messages.sendPlayerMessage(player, "messages.noPillar");
                         return true;
                     }
 
-                    RoadEnabled re = new RoadEnabled(road, player.getWorld());
+                    RoadEnabled re = new RoadEnabled(player, road);
                     int count = 1;
                     if (args.length > 2) {
                         try {
@@ -221,11 +291,19 @@ public class LazyRoad extends JavaPlugin {
                             count = 1;
                         }
                     }
-                    re.setCount(count);
+                    re.setCount(count - 1);
                     re.setTunnel(true);
                     re.setPillar(pillar);
 
-                    playerListener.addBuilder(player, re);
+                    if (playerPropStraight.contains(splayer)) {
+                        re.setStraight(false);
+                    }
+
+                    if (playerListener.addBuilder(splayer, re)) {
+                        messages.sendPlayerMessage(player, "messages.beginBuilding");
+                    } else {
+                        messages.sendPlayerMessage(player, "messages.alreadyBuilding");
+                    }
                 }
             }
         }
@@ -233,23 +311,16 @@ public class LazyRoad extends JavaPlugin {
         return true;
     }
 
-    private void loadRoads() {
+    private void loadRoads() throws IOException {
 
         roads.clear();
 
-        File[] files = roadsDirectory.listFiles(new FilenameFilter() {
-
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".ser");
-            }
-        });
-
+        File[] files = roadsDirectory.listFiles(filenameFilter);
 
         int imax = files.length;
         for (int i = 0; i < imax; i++) {
             File f = files[i];
-            
+
             String name = "noRoad";
 
             try {
@@ -257,31 +328,24 @@ public class LazyRoad extends JavaPlugin {
                 name = name.substring(0, name.length() - 4);
 
                 ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f));
-                
-                Road openRoad = (Road)ois.readObject();
-                
+
+                Road openRoad = (Road) ois.readObject();
+
                 roads.put(name, openRoad);
-                
+
                 ois.close();
 
-            } catch (Exception ex) {
+            } catch (ClassNotFoundException ex) {
                 log.warning("[LazyRoad] An error occured while parsing the road " + name + " !");
             }
         }
     }
 
-
-    private void loadPillars() {
+    private void loadPillars() throws IOException {
 
         pillars.clear();
 
-        File[] files = pillarsDirectory.listFiles(new FilenameFilter() {
-
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".ser");
-            }
-        });
+        File[] files = pillarsDirectory.listFiles(filenameFilter);
 
         int imax = files.length;
         for (int i = 0; i < imax; i++) {
@@ -294,32 +358,58 @@ public class LazyRoad extends JavaPlugin {
                 name = name.substring(0, name.length() - 4);
 
                 ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f));
-                
-                Pillar openPillar = (Pillar)ois.readObject();
-                
+
+                Pillar openPillar = (Pillar) ois.readObject();
+
                 pillars.put(name, openPillar);
-                
+
                 ois.close();
 
-            } catch (Exception ex) {
+            } catch (ClassNotFoundException ex) {
                 log.warning("[LazyRoad] An error occured while parsing the Pillar " + name + " !");
             }
         }
     }
 
-    private void sendRoadPillarMessages(Player player) {
+    private void sendRoadPillarMessages(Player player, int page) {
+
+        int pages = Math.max(roads.size(), pillars.size()) / 6;
+
+        if (page > pages || page < 0) {
+
+            return;
+        }
+
+        String titleColor = ChatColor.GOLD.toString();
+        String valueColor = ChatColor.LIGHT_PURPLE.toString();
+        String barColor = ChatColor.AQUA.toString();
+
+        player.sendMessage(ColumnChat.getColumn(barColor, titleColor, "Roads", "Pillar"));
 
         Iterator<String> roadIt = roads.keySet().iterator();
         Iterator<String> pillarIt = pillars.keySet().iterator();
-
-        player.sendMessage(ChatColor.AQUA + String.format("%15s | %15s", "Roads", "Pillars"));
-        int imax = Math.max(roads.size(), pillars.size());
-
-        for (int i = 0; i < imax; i++) {
+        // advance till the correct page
+        int until = page * 6;
+        while (until > 0 && roadIt.hasNext()) {
+            roadIt.next();
+            until--;
+        }
+        until = page * 6;
+        while (until > 0 && pillarIt.hasNext()) {
+            pillarIt.next();
+            until--;
+        }
+        // print
+        int i = 6;
+        while (i > 0 && (roadIt.hasNext() || pillarIt.hasNext())) {
             String pillarName = pillarIt.hasNext() ? pillarIt.next() : "";
             String roadName = roadIt.hasNext() ? roadIt.next() : "";
 
-            player.sendMessage(String.format("%15s   %15s", roadName, pillarName));
+            player.sendMessage(ColumnChat.getColumn(barColor, valueColor, roadName, pillarName));
+            i--;
         }
+
+
+        player.sendMessage("Page " + page + " of " + pages);
     }
 }

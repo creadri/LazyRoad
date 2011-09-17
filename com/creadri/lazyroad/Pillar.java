@@ -3,7 +3,6 @@ package com.creadri.lazyroad;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 
 /**
  *
@@ -71,18 +70,22 @@ public class Pillar implements Serializable {
     }
 
     public PillarPart getRoadPartToBuild(int count) {
-        count %= maxSequence;
+        count = (count % maxSequence) + 1;
 
-        Iterator<PillarPart> itPillarPart = parts.iterator();
-
-        while (itPillarPart.hasNext()) {
-            PillarPart pp = itPillarPart.next();
-
-            if (pp.isToBuild(count)) {
-                return pp;
+        for (PillarPart part : parts) {
+            int re = part.getRepeatEvery();
+            if (re == count) {
+                return part;
+            } else if (re < count) {
+                part = parts.get(parts.size() - 1);
+                if (part.getRepeatEvery() == 1) {
+                    return part;
+                } else {
+                    return null;
+                }
             }
         }
-
+        
         return null;
     }
 }
