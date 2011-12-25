@@ -37,18 +37,18 @@ public class Pillar implements Serializable {
 
     public boolean addPillarPart(PillarPart part) {
         int index = Collections.binarySearch(parts, part);
-        
+
         if (index >= 0) {
             return false;
         }
-        
+
         parts.add(part);
         Collections.sort(parts);
         maxSequence = parts.get(0).getRepeatEvery();
-        
+
         return true;
     }
-    
+
     public void removePillarPart(PillarPart part) {
         parts.remove(part);
     }
@@ -70,22 +70,14 @@ public class Pillar implements Serializable {
     }
 
     public PillarPart getRoadPartToBuild(int count) {
-        count = (count % maxSequence) + 1;
-
         for (PillarPart part : parts) {
             int re = part.getRepeatEvery();
-            if (re == count) {
+            count = count % re;
+
+            if (count == 0) {
                 return part;
-            } else if (re < count) {
-                part = parts.get(parts.size() - 1);
-                if (part.getRepeatEvery() == 1) {
-                    return part;
-                } else {
-                    return null;
-                }
             }
         }
-        
         return null;
     }
 }

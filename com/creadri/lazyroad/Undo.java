@@ -67,20 +67,12 @@ public class Undo implements Serializable {
     }
 
     public void undo() {
-        Thread thread = new Thread(new Runnable() {
+        for (int i = current - 1; i >= 0; i--) {
+            Block b = world.getBlockAt(xs[i], ys[i], zs[i]);
+            b.setTypeIdAndData(ids[i], datas[i], false);
+        }
 
-            @Override
-            public void run() {
-                for (int i = current - 1; i >= 0; i--) {
-                    Block b = world.getBlockAt(xs[i], ys[i], zs[i]);
-                    b.setTypeIdAndData(ids[i], datas[i], false);
-                }
-
-                current = 0;
-            }
-        });
-        
-        thread.start();
+        current = 0;
     }
 
     public int getCurrent() {

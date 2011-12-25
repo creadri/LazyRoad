@@ -3,11 +3,13 @@ package com.creadri.lazyroad;
 import com.creadri.util.ColumnChat;
 import com.creadri.util.FileManager;
 import com.creadri.util.Messages;
+import com.creadri.util.Updater;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,7 +50,6 @@ public class LazyRoad extends JavaPlugin {
     };
     // config and message related
     private Configuration config;
-    
     public static Messages messages;
     public static final Logger log = Logger.getLogger("Minecraft");
 
@@ -59,6 +60,7 @@ public class LazyRoad extends JavaPlugin {
     public void onEnable() {
         // configuration files
         try {
+            Updater.checkUpdate(this, new URL("http://www.creadri.com/bukkit/plugins.xml"), log);
 
             roadsDirectory = new File(getDataFolder(), "roads");
             pillarsDirectory = new File(getDataFolder(), "pillars");
@@ -135,7 +137,7 @@ public class LazyRoad extends JavaPlugin {
                  * SUB-COMMAND LISTING
                  */
                 sendRoadPillarMessages(player, 0);
-                
+
             } else if (args.length == 1 && args[0].equalsIgnoreCase("stop")) {
                 /**
                  * SUB-COMMAND STOP
@@ -146,7 +148,7 @@ public class LazyRoad extends JavaPlugin {
                 }
 
                 return true;
-                
+
             } else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
                 /**
                  * SUB-COMMAND RELOAD
@@ -159,7 +161,7 @@ public class LazyRoad extends JavaPlugin {
                 }
                 messages.sendPlayerMessage(player, "messages.reload");
                 return true;
-                
+
             } else if (args.length == 1 && args[0].equalsIgnoreCase("undo")) {
                 /**
                  * SUB-COMMAND UNDO
@@ -170,7 +172,7 @@ public class LazyRoad extends JavaPlugin {
                     messages.sendPlayerMessage(player, "messages.undoError");
                 }
                 return true;
-                
+
             } else if (args.length == 1 && args[0].equalsIgnoreCase("straight")) {
                 /**
                  * SUB-COMMAND STRAIGHT
@@ -184,7 +186,7 @@ public class LazyRoad extends JavaPlugin {
                 }
 
                 return true;
-                
+
             } else if (args.length == 1) {
                 try {
                     int page = Integer.parseInt(args[0]);
@@ -312,7 +314,6 @@ public class LazyRoad extends JavaPlugin {
     }
 
     private void loadRoads() throws IOException {
-
         roads.clear();
 
         File[] files = roadsDirectory.listFiles(filenameFilter);
@@ -342,7 +343,6 @@ public class LazyRoad extends JavaPlugin {
     }
 
     private void loadPillars() throws IOException {
-
         pillars.clear();
 
         File[] files = pillarsDirectory.listFiles(filenameFilter);
@@ -408,7 +408,6 @@ public class LazyRoad extends JavaPlugin {
             player.sendMessage(ColumnChat.getColumn(barColor, valueColor, roadName, pillarName));
             i--;
         }
-
 
         player.sendMessage("Page " + page + " of " + pages);
     }

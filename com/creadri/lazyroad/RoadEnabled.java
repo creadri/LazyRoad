@@ -25,11 +25,6 @@ public class RoadEnabled {
     private Undo undo;
     private World world;
 
-    private enum Direction {
-
-        SOUTH, NORTH, WEST, EAST;
-    }
-
     public RoadEnabled(Player player, Road road) {
         Location loc = player.getLocation();
         this.world = loc.getWorld();
@@ -210,7 +205,6 @@ public class RoadEnabled {
     }
 
     private void putBlock(int x, int y, int z, int id, byte data, Direction dir) {
-
         if (id == -1) {
             return;
         }
@@ -334,11 +328,15 @@ public class RoadEnabled {
         if (oldDir == dir) {
             return false;
         }
+        
+        RoadPart part = road.getRoadPartToBuild(1);
+        
+        if (part == null) {
+            return false;
+        }
 
         // check though all the 8 cases
         if (oldDir == Direction.NORTH && dir == Direction.EAST) {
-
-            RoadPart part = road.getRoadPartToBuild(1);
 
             int newY = y - part.getGroundLayer();
             int height = part.getHeight();
@@ -373,8 +371,6 @@ public class RoadEnabled {
 
         } else if (oldDir == Direction.NORTH && dir == Direction.WEST) {
 
-            RoadPart part = road.getRoadPartToBuild(1);
-
             int newY = y - part.getGroundLayer();
             int height = part.getHeight();
             int jmax = part.getWidth() / 2;
@@ -407,8 +403,6 @@ public class RoadEnabled {
             return true;
 
         } else if (oldDir == Direction.SOUTH && dir == Direction.EAST) {
-
-            RoadPart part = road.getRoadPartToBuild(1);
 
             int newY = y - part.getGroundLayer();
             int height = part.getHeight();
@@ -443,8 +437,6 @@ public class RoadEnabled {
 
         } else if (oldDir == Direction.SOUTH && dir == Direction.WEST) {
 
-            RoadPart part = road.getRoadPartToBuild(1);
-
             int newY = y - part.getGroundLayer();
             int height = part.getHeight();
             int jmax = part.getWidth() / 2;
@@ -477,8 +469,6 @@ public class RoadEnabled {
             return true;
 
         } else if (oldDir == Direction.EAST && dir == Direction.NORTH) {
-
-            RoadPart part = road.getRoadPartToBuild(1);
 
             int newY = y - part.getGroundLayer();
             int height = part.getHeight();
@@ -513,8 +503,6 @@ public class RoadEnabled {
 
         } else if (oldDir == Direction.EAST && dir == Direction.SOUTH) {
 
-            RoadPart part = road.getRoadPartToBuild(1);
-
             int newY = y - part.getGroundLayer();
             int height = part.getHeight();
             int jmax = part.getWidth() / 2;
@@ -547,8 +535,6 @@ public class RoadEnabled {
             return true;
 
         } else if (oldDir == Direction.WEST && dir == Direction.NORTH) {
-
-            RoadPart part = road.getRoadPartToBuild(1);
 
             int newY = y - part.getGroundLayer();
             int height = part.getHeight();
@@ -583,8 +569,6 @@ public class RoadEnabled {
 
         } else if (oldDir == Direction.WEST && dir == Direction.SOUTH) {
 
-            RoadPart part = road.getRoadPartToBuild(1);
-
             int newY = y - part.getGroundLayer();
             int height = part.getHeight();
             int jmax = part.getWidth() / 2;
@@ -617,7 +601,6 @@ public class RoadEnabled {
             return true;
 
         }
-
 
         return false;
     }

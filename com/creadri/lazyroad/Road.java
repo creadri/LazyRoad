@@ -87,23 +87,15 @@ public class Road implements Serializable {
         this.parts = parts;
     }
     
-    public RoadPart getRoadPartToBuild(int count) {
-        count = (count % maxSequence) + 1;
-        
+    public RoadPart getRoadPartToBuild(int count) {       
         for (RoadPart part : parts) {
             int re = part.getRepeatEvery();
-            if (re == count) {
+            count = count % re;
+
+            if (count == 0) {
                 return part;
-            } else if (re < count) {
-                part = parts.get(parts.size() - 1);
-                if (part.getRepeatEvery() == 1) {
-                    return part;
-                } else {
-                    return null;
-                }
             }
         }
-        
         return null;
     }
 }

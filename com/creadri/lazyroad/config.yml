@@ -34,7 +34,7 @@ messages:
   buildStop: "§4Road Stopped, You are on the §6%0§4 block of road."
   reload: "§bLazyRoad is reloaded."
   undo: "§bUndone."
-  roadCount: "§bRoad lenght: §e%0§b blocks."
+  roadCount: "§bRoad length: §e%0§b blocks."
   beginBuilding: "§bLazyRoad build mode enabled."
   straightEnabled: "§bStraight mode enabled."
   straightDisabled: "§bStraight mode disabled."
