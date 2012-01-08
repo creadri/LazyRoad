@@ -211,7 +211,7 @@ public class LazyRoad extends JavaPlugin {
                         return true;
                     }
 
-                    RoadEnabled re = new RoadEnabled(player, road);
+                    RoadEnabled re = new RoadEnabled(player, road, player.getLocation());
                     int count = 1;
                     if (args.length > 1) {
                         try {
@@ -244,7 +244,7 @@ public class LazyRoad extends JavaPlugin {
                         return true;
                     }
 
-                    RoadEnabled re = new RoadEnabled(player, road);
+                    RoadEnabled re = new RoadEnabled(player, road, player.getLocation());
                     int count = 1;
                     if (args.length > 1) {
                         try {
@@ -284,7 +284,7 @@ public class LazyRoad extends JavaPlugin {
                         return true;
                     }
 
-                    RoadEnabled re = new RoadEnabled(player, road);
+                    RoadEnabled re = new RoadEnabled(player, road, player.getLocation());
                     int count = 1;
                     if (args.length > 2) {
                         try {

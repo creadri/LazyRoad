@@ -25,8 +25,7 @@ public class RoadEnabled {
     private Undo undo;
     private World world;
 
-    public RoadEnabled(Player player, Road road) {
-        Location loc = player.getLocation();
+    public RoadEnabled(Player player, Road road, Location loc) {
         this.world = loc.getWorld();
         this.oldX = loc.getBlockX();
         this.oldZ = loc.getBlockZ();
@@ -58,9 +57,7 @@ public class RoadEnabled {
         return undo;
     }
 
-    public void drawRoad(Player player) {
-
-        Location playerLocation = player.getLocation();
+    public void drawRoad(Player player, Location playerLocation) {
 
         // player current coordinates
         int x = playerLocation.getBlockX();
