@@ -46,7 +46,7 @@ public class LazyRoadPlayerListener extends PlayerListener {
             return;
         }
 
-        road.drawRoad(event.getPlayer());
+        road.drawRoad(event.getPlayer(),event.getPlayer().getLocation());
     }
 
     @Override
