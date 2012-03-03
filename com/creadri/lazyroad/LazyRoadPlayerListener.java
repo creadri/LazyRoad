@@ -9,7 +9,9 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
-import org.bukkit.event.player.PlayerListener;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
@@ -17,7 +19,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
  * Handle events for all Player related events
  * @author creadri
  */
-public class LazyRoadPlayerListener extends PlayerListener {
+public class LazyRoadPlayerListener implements Listener {
 
     private final LazyRoad plugin;
     private HashMap<String, RoadEnabled> builders;
@@ -33,7 +35,7 @@ public class LazyRoadPlayerListener extends PlayerListener {
         undoers = new HashMap<String, Stack<Undo>>();
     }
 
-    @Override
+    @EventHandler(priority= EventPriority.LOWEST)
     public void onPlayerMove(PlayerMoveEvent event) {
 
         if (event.isCancelled()) {
@@ -49,7 +51,7 @@ public class LazyRoadPlayerListener extends PlayerListener {
         road.drawRoad(event.getPlayer());
     }
 
-    @Override
+    @EventHandler(priority= EventPriority.LOWEST)
     public void onPlayerTeleport(PlayerTeleportEvent event) {
 
         String player = event.getPlayer().getName();

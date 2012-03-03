@@ -3,13 +3,11 @@ package com.creadri.lazyroad;
 import com.creadri.util.ColumnChat;
 import com.creadri.util.FileManager;
 import com.creadri.util.Messages;
-import com.creadri.util.Updater;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,14 +17,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event.Priority;
-import org.bukkit.event.Event;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.util.config.Configuration;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
  * @author creadri
+ * some updates buy VeraLapsa
  */
 public class LazyRoad extends JavaPlugin {
 
@@ -49,7 +47,7 @@ public class LazyRoad extends JavaPlugin {
         }
     };
     // config and message related
-    private Configuration config;
+    private FileConfiguration config;
     public static Messages messages;
     public static final Logger log = Logger.getLogger("Minecraft");
 
@@ -60,7 +58,6 @@ public class LazyRoad extends JavaPlugin {
     public void onEnable() {
         // configuration files
         try {
-            Updater.checkUpdate(this, new URL("http://www.creadri.com/bukkit/plugins.xml"), log);
 
             roadsDirectory = new File(getDataFolder(), "roads");
             pillarsDirectory = new File(getDataFolder(), "pillars");
@@ -83,9 +80,8 @@ public class LazyRoad extends JavaPlugin {
             if (!configFile.exists()) {
                 FileManager.copyDefaultRessource(getDataFolder(), "/com/creadri/lazyroad/config.yml", "config.yml");
             }
-
-            config = new Configuration(configFile);
-            config.load();
+            
+            config = YamlConfiguration.loadConfiguration(configFile);
 
             messages = new Messages(this, config);
 
@@ -98,8 +94,7 @@ public class LazyRoad extends JavaPlugin {
         // Register events
         if (!eventRegistered) {
             PluginManager pm = getServer().getPluginManager();
-            pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Lowest, this);
-            pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Priority.Lowest, this);
+            pm.registerEvents(this.playerListener, this);
 
             eventRegistered = true;
 

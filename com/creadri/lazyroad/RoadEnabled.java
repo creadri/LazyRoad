@@ -220,92 +220,344 @@ public class RoadEnabled {
         // directional items
         if (dir != Direction.NORTH) { // north is the default direction for items
 
-            // torches normal and redstone
+            // torches(50) and off and on redstone torches(75,76)
             if ((id == 50 || id == 75 || id == 76) && data != (byte) 5) {
-                if (dir == Direction.SOUTH && data == (byte) 1) {
-                    // south vs south
-                    data = (byte) 2;
-                } else if (dir == Direction.SOUTH && data == (byte) 2) {
-                    // south vs north
-                    data = (byte) 1;
-                } else if (dir == Direction.SOUTH && data == (byte) 3) {
-                    // south vs west
-                    data = (byte) 4;
-                } else if (dir == Direction.SOUTH && data == (byte) 4) {
-                    // south vs east
-                    data = (byte) 3;
-                } else if (dir == Direction.WEST && data == (byte) 1) {
-                    // west vs south
-                    data = (byte) 3;
-                } else if (dir == Direction.WEST && data == (byte) 2) {
-                    // west vs north
-                    data = (byte) 4;
-                } else if (dir == Direction.WEST && data == (byte) 3) {
-                    // west vs west
-                    data = (byte) 2;
-                } else if (dir == Direction.WEST && data == (byte) 4) {
-                    // west vs east
-                    data = (byte) 1;
-                } else if (dir == Direction.EAST && data == (byte) 1) {
-                    // east vs south
-                    data = (byte) 4;
-                } else if (dir == Direction.EAST && data == (byte) 2) {
-                    // east vs north
-                    data = (byte) 3;
-                } else if (dir == Direction.EAST && data == (byte) 3) {
-                    // east vs west
-                    data = (byte) 1;
-                } else if (dir == Direction.EAST && data == (byte) 4) {
-                    // east vs east
-                    data = (byte) 2;
+                if (dir == Direction.SOUTH ) {
+                    if (data == (byte) 1) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 3;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 1) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 2;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 1) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 1;
+                    }
                 }
             }
 
-            // torches normal and redstone
-            if ((id == 53 || id == 67 || id == 108 || id == 109)) {               
+            // Stairs
+            if ((id == 53 || id == 67 || id == 108 || id == 109)) {  
                 
-                if (dir == Direction.SOUTH && data == (byte) 0) {
-                    // south vs south
-                    data = (byte) 1;
-                } else if (dir == Direction.SOUTH && data == (byte) 1) {
-                    // south vs north
-                    data = (byte) 0;
-                } else if (dir == Direction.SOUTH && data == (byte) 2) {
-                    // south vs west
-                    data = (byte) 3;
-                } else if (dir == Direction.SOUTH && data == (byte) 3) {
-                    // south vs east
-                    data = (byte) 2;
-                    
-                    
-                } else if (dir == Direction.WEST && data == (byte) 0) {
-                    // west vs south
-                    data = (byte) 3;
-                } else if (dir == Direction.WEST && data == (byte) 1) {
-                    // west vs north
-                    data = (byte) 2;
-                } else if (dir == Direction.WEST && data == (byte) 2) {
-                    // west vs west
-                    data = (byte) 0;
-                } else if (dir == Direction.WEST && data == (byte) 3) {
-                    // west vs east
-                    data = (byte) 1;
-                    
-                    
-                } else if (dir == Direction.EAST && data == (byte) 0) {
-                    // east vs south
-                    data = (byte) 2;
-                } else if (dir == Direction.EAST && data == (byte) 1) {
-                    // east vs north
-                    data = (byte) 3;
-                } else if (dir == Direction.EAST && data == (byte) 2) {
-                    // east vs west
-                    data = (byte) 0;
-                } else if (dir == Direction.EAST && data == (byte) 3) {
-                    // east vs east
-                    data = (byte) 1;
+                byte vrtdir = (byte) ( data & 0x04); // AND to get if Stair is upside down
+                data = (byte) ( data & 0x03); // AND to get the Dir
+                
+                if (dir == Direction.SOUTH ) {
+                    if (data == (byte) 0) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 2;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 1;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 1;
+                    }
+                }
+                // OR the upside down bit
+                data = (byte) (data | vrtdir);
+            }
+            
+            
+            // Dispensers, Chests, Furnaces, ladder, and wall signs
+            if ((id == 23 || id == 54 || id == 61 || id == 62 || id == 65 || id == 68 )) {
+                if (dir == Direction.SOUTH) {
+                    if (data == (byte) 2) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 5;
+                    } else if (data == (byte) 5) {
+                        data = (byte) 4;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 2) {
+                        data = (byte) 5;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 5) {
+                        data = (byte) 3;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 2) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 5;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 5) {
+                        data = (byte) 2;
+                    }
                 }
             }
+            
+            // button
+            if (id == 77) {
+                if (dir == Direction.SOUTH) {
+                    if (data == (byte) 1) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 3;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 1) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 1;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 1) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 2;
+                    }
+                }
+            }
+            
+            
+            // Pumpkins and Jack-O-Lanturns
+            if ((id == 86 || id == 91)) {
+                if (dir == Direction.SOUTH) {
+                    if (data == (byte) 0) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 1;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 0;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 2;
+                    }
+                }
+            }
+            
+            // Diodes(93,94)
+            if (( id == 93 || id == 94)) {               
+                byte tick = (byte) ( 0x03 & data); // AND the 1 and 2 bits to get the tick duration
+                data = (byte) ( 0x0C & data); // AND the 3 and 4 bits to get direction
+                
+                if (dir == Direction.SOUTH) {
+                    if (data == (byte) 0) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 1;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 0;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 2;
+                    }
+                }
+                
+                // OR the Tick back on to data
+                data = (byte) (data | tick);
+            }
+            
+            //trap door
+            if (id == 96) {
+                byte open = (byte) (data & 0x04);
+                data = (byte) (data & 0x03);
+                
+                if (dir == Direction.SOUTH) {
+                    if (data == (byte) 0) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 2;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 1;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 0;
+                    }
+                }
+                
+                data = (byte) (data | open);
+            }
+            
+            //pistons
+            if ((id == 29 || id == 33)) {
+                if (dir == Direction.SOUTH) {
+                    if (data == (byte) 2) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 5;
+                    } else if (data == (byte) 5) {
+                        data = (byte) 4;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 2) {
+                        data = (byte) 5;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 5) {
+                        data = (byte) 3;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 2) {
+                        data = (byte) 4;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 5;
+                    } else if (data == (byte) 4) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 5) {
+                        data = (byte) 2;
+                    }
+                }
+            }
+            
+            //fence gate
+            if (id == 107) {
+                byte open = (byte) (data & 0x04);
+                data = (byte) (data & 0x03);
+                
+                if (dir == Direction.SOUTH) {
+                    if (data == (byte) 0) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 1;
+                    }
+                } else if (dir == Direction.EAST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 2;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 0;
+                    }
+                } else if (dir == Direction.WEST) {
+                    if (data == (byte) 0) {
+                        data = (byte) 3;
+                    } else if (data == (byte) 1) {
+                        data = (byte) 0;
+                    } else if (data == (byte) 2) {
+                        data = (byte) 1;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 2;
+                    }
+                }
+                data = (byte) (data | open);
+            }
+            
         }
 
         b.setTypeIdAndData(id, data, false);
@@ -1226,7 +1478,10 @@ public class RoadEnabled {
                 || i == 59
                 || i == 70
                 || i == 72
-                || i == 78;
+                || i == 78
+                || i == 106
+                || i == 111
+                || i == 115;
     }
 
     private boolean isToIgnoreForPillar(Block b) {
@@ -1239,11 +1494,14 @@ public class RoadEnabled {
                 || (i >= 37 && i <= 40)
                 || i == 50
                 || i == 51
-                || i == 55
                 || i == 59
                 || i == 70
                 || i == 72
-                || i == 78;
+                || i == 78
+                || i == 79
+                || i == 106
+                || i == 111
+                || i == 115;
     }
 
     public boolean isHasBuilt() {
