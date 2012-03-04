@@ -405,8 +405,8 @@ public class RoadEnabled {
             
             // Diodes(93,94)
             if (( id == 93 || id == 94)) {               
-                byte tick = (byte) ( 0x03 & data); // AND the 1 and 2 bits to get the tick duration
-                data = (byte) ( 0x0C & data); // AND the 3 and 4 bits to get direction
+                byte tick = (byte) ( 0x0C & data); // AND the 3 and 4 bits to get the tick duration
+                data = (byte) ( 0x03 & data); // AND the 1 and 2 bits to get direction
                 
                 if (dir == Direction.SOUTH) {
                     if (data == (byte) 0) {
