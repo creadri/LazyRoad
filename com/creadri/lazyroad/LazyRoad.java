@@ -74,14 +74,10 @@ public class LazyRoad extends JavaPlugin {
 
             // load undo
             playerListener.unSerializeRoadsUndos(undoSave);
-
-            // global configuration and messages
-            File configFile = new File(getDataFolder(), "config.yml");
-            if (!configFile.exists()) {
-                FileManager.copyDefaultRessource(getDataFolder(), "/com/creadri/lazyroad/config.yml", "config.yml");
-            }
             
-            config = YamlConfiguration.loadConfiguration(configFile);
+            getConfig().options().copyDefaults(true);
+            
+            config = getConfig();
 
             messages = new Messages(this, config);
 

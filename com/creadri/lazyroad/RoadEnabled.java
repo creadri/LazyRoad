@@ -256,7 +256,7 @@ public class RoadEnabled {
             }
 
             // Stairs
-            if ((id == 53 || id == 67 || id == 108 || id == 109)) {  
+            if ((id == 53 || id == 67 || id == 108 || id == 109 || id == 114)) {  
                 
                 byte vrtdir = (byte) ( data & 0x04); // AND to get if Stair is upside down
                 data = (byte) ( data & 0x03); // AND to get the Dir
@@ -265,7 +265,7 @@ public class RoadEnabled {
                     if (data == (byte) 0) {
                         data = (byte) 1;
                     } else if (data == (byte) 1) {
-                        data = (byte) 2;
+                        data = (byte) 0;
                     } else if (data == (byte) 2) {
                         data = (byte) 3;
                     } else if (data == (byte) 3) {
@@ -277,9 +277,9 @@ public class RoadEnabled {
                     } else if (data == (byte) 1) {
                         data = (byte) 3;
                     } else if (data == (byte) 2) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 3) {
                         data = (byte) 1;
+                    } else if (data == (byte) 3) {
+                        data = (byte) 0;
                     }
                 } else if (dir == Direction.WEST) {
                     if (data == (byte) 0) {
