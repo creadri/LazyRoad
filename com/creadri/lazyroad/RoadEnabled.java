@@ -18,6 +18,8 @@ public class RoadEnabled {
     private boolean hasBuilt = false;
     private boolean tunnel = false;
     private boolean straight = true;
+    private boolean forceUp = false;
+    private boolean forceDown = false;
     private int oldX;
     private int oldY;
     private int oldZ;
@@ -75,9 +77,21 @@ public class RoadEnabled {
         int y = getYFirstBlock(x, playerLocation.getBlockY(), z);
 
         // constraint the y by the tunnel mode or to make stairs
-        if (hasBuilt && tunnel) {
+        if (hasBuilt && tunnel && !forceUp && !forceDown) {
             // for tunnel mode, always keep old Y
             y = oldY;
+        } else if (hasBuilt && forceUp){
+            if ((count - lastBuiltStairs) < road.getMaxGradient()) {
+                y = oldY;
+            } else {
+                y = oldY + 1;
+            }
+        } else if (hasBuilt && forceDown){
+            if ((count - lastBuiltStairs) < road.getMaxGradient()) {
+                y = oldY;
+            } else {
+                y = oldY - 1;
+            }
         } else if (hasBuilt && (oldY - y) != 0) {
             // limit the y value for stairs to apply correctly
             if ((count - lastBuiltStairs) < road.getMaxGradient()) {
@@ -87,7 +101,7 @@ public class RoadEnabled {
             } else if (y - oldY > 1) {
                 y = oldY + 1;
             }
-        }
+        } 
 
         Direction dir = getDirection(playerLocation);
 
@@ -869,7 +883,8 @@ public class RoadEnabled {
 
         int groundLayer = part.getGroundLayer();
         // new coords
-        int newX = tunnel ? x - 1 : x;
+        //int newX = tunnel ? x - 1 : x;
+        int newX = x - 1;
         int newY = y - part.getGroundLayer();
         int newZ = z;
         // information about the array of informations
@@ -905,7 +920,8 @@ public class RoadEnabled {
 
             RoadPart stairs = road.getStairs();
 
-            newX = tunnel ? x - 1 : x;
+            //newX = tunnel ? x - 1 : x;
+            newX = x - 1;
             newY = (y - oldY) > 0 ? y : y + 1;
             newZ = z;
 
@@ -952,7 +968,8 @@ public class RoadEnabled {
                 return;
             }
 
-            newX = tunnel ? x - 1 : x;
+            //newX = tunnel ? x - 1 : x;
+            newX = x - 1;
             newY = y - groundLayer - 1;
             newZ = z;
 
@@ -1015,7 +1032,8 @@ public class RoadEnabled {
 
         int groundLayer = part.getGroundLayer();
         // new coords
-        int newX = tunnel ? x + 1 : x;
+        //int newX = tunnel ? x + 1 : x;
+        int newX = x + 1;
         int newY = y - part.getGroundLayer();
         int newZ = z;
         // information about the array of informations
@@ -1051,7 +1069,8 @@ public class RoadEnabled {
 
             RoadPart stairs = road.getStairs();
 
-            newX = tunnel ? x + 1 : x;
+            //newX = tunnel ? x + 1 : x;
+            newX = x + 1;
             newY = (y - oldY) > 0 ? y : y + 1;
             newZ = z;
 
@@ -1098,7 +1117,8 @@ public class RoadEnabled {
                 return;
             }
 
-            newX = tunnel ? x + 1 : x;
+            //int newX = tunnel ? x + 1 : x;
+            newX = x + 1;
             newY = y - groundLayer - 1;
             newZ = z;
 
@@ -1165,7 +1185,8 @@ public class RoadEnabled {
         // new coords
         int newX = x;
         int newY = y - part.getGroundLayer();
-        int newZ = tunnel ? z + 1 : z;
+        //int newZ = tunnel ? z + 1 : z;
+        int newZ = z + 1;
         // information about the array of informations
         int height = part.getHeight();
         int width = part.getWidth();
@@ -1201,7 +1222,8 @@ public class RoadEnabled {
 
             newX = x;
             newY = (y - oldY) > 0 ? y : y + 1;
-            newZ = tunnel ? z + 1 : z;
+            //newZ = tunnel ? z + 1 : z;
+            newZ = z + 1;
 
             height = stairs.getHeight();
             width = stairs.getWidth();
@@ -1248,7 +1270,8 @@ public class RoadEnabled {
 
             newX = x;
             newY = y - groundLayer - 1;
-            newZ = tunnel ? z + 1 : z;
+            //newZ = tunnel ? z + 1 : z;
+            newZ = z + 1;
 
             int buildUntil = pillarPart.getBuildUntil();
             if (buildUntil == 0) {
@@ -1311,7 +1334,8 @@ public class RoadEnabled {
         // new coords
         int newX = x;
         int newY = y - part.getGroundLayer();
-        int newZ = tunnel ? z - 1 : z;
+        //int newZ = tunnel ? z - 1 : z;
+        int newZ = z - 1;
         // information about the array of informations
         int height = part.getHeight();
         int width = part.getWidth();
@@ -1347,7 +1371,8 @@ public class RoadEnabled {
 
             newX = x;
             newY = (y - oldY) > 0 ? y : y + 1;
-            newZ = tunnel ? z - 1 : z;
+            //newZ = tunnel ? z - 1 : z;
+            newZ = z - 1;
 
             height = stairs.getHeight();
             width = stairs.getWidth();
@@ -1394,7 +1419,8 @@ public class RoadEnabled {
 
             newX = x;
             newY = y - groundLayer - 1;
-            newZ = tunnel ? z - 1 : z;
+            //newZ = tunnel ? z - 1 : z;
+            newZ = z - 1;
 
             int buildUntil = pillarPart.getBuildUntil();
             if (buildUntil == 0) {
@@ -1457,6 +1483,14 @@ public class RoadEnabled {
 
     public boolean isTunnel() {
         return tunnel;
+    }
+    
+    public void setForceDown(boolean forceDown) {
+        this.forceDown = forceDown;
+    }
+
+    public void setForceUp(boolean forceUp) {
+        this.forceUp = forceUp;
     }
 
     public void setTunnel(boolean tunnel) {

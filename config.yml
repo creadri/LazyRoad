@@ -38,4 +38,7 @@ messages:
   beginBuilding: "§bLazyRoad build mode enabled."
   straightEnabled: "§bStraight mode enabled."
   straightDisabled: "§bStraight mode disabled."
+  forceUp: "§bForcing road to go up."
+  forceDown: "§bForcing road to go down."
+  normal: "§bRoad will be placed normally now."
   

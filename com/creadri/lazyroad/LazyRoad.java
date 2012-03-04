@@ -129,7 +129,7 @@ public class LazyRoad extends JavaPlugin {
                  */
                 sendRoadPillarMessages(player, 0);
 
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("stop")) {
+            } else if (args.length == 1 && ( args[0].equalsIgnoreCase("stop") ||  args[0].equalsIgnoreCase("end"))) {
                 /**
                  * SUB-COMMAND STOP
                  */
@@ -140,6 +140,33 @@ public class LazyRoad extends JavaPlugin {
 
                 return true;
 
+            } else if (args.length == 1 && args[0].equalsIgnoreCase("up")){
+                /**
+                 * SUB-COMMAND up
+                 */
+                RoadEnabled re = playerListener.setForceUp(splayer);
+                if (re != null) {
+                    messages.sendPlayerMessage(player, "messages.forceUp");
+                }
+                return true;
+            } else if (args.length == 1 && args[0].equalsIgnoreCase("down")){
+                /**
+                 * SUB-COMMAND down
+                 */
+                RoadEnabled re = playerListener.setForceDown(splayer);
+                if (re != null) {
+                    messages.sendPlayerMessage(player, "messages.forceDown");
+                }
+                return true;
+            } else if (args.length == 1 && args[0].equalsIgnoreCase("normal")){
+                /**
+                 * SUB-COMMAND normal
+                 */
+                RoadEnabled re = playerListener.setNormal(splayer);
+                if (re != null) {
+                    messages.sendPlayerMessage(player, "messages.normal");
+                }
+                return true;
             } else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
                 /**
                  * SUB-COMMAND RELOAD

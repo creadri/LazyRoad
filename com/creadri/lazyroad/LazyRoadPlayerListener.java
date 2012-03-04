@@ -80,7 +80,43 @@ public class LazyRoadPlayerListener implements Listener {
         builders.put(player, road);
         return true;
     }
-
+    
+    public RoadEnabled setForceUp(String player){
+        RoadEnabled re;
+        if(builders.containsKey(player)){
+           re = builders.get(player);
+           re.setForceUp(true);
+           re.setForceDown(false);
+        } else {
+            re = null;
+        }
+        return re;
+    }
+    
+    public RoadEnabled setForceDown(String player){
+        RoadEnabled re;
+        if(builders.containsKey(player)){
+           re = builders.get(player);
+           re.setForceUp(false);
+           re.setForceDown(true);
+        }else {
+            re = null;
+        }
+        return re;
+    }
+    
+    public RoadEnabled setNormal(String player){
+        RoadEnabled re;
+        if(builders.containsKey(player)){
+           re = builders.get(player);
+           re.setForceUp(false);
+           re.setForceDown(false);
+        }else {
+            re = null;
+        }
+        return re;
+    }
+    
     public RoadEnabled removeBuilder(String player) {
         RoadEnabled re = builders.remove(player);
         if (re != null) {
