@@ -106,7 +106,8 @@ public class LazyRoad extends JavaPlugin {
     @Override
     public void onDisable() {
         playerListener.serializeRoadsUndos(undoSave);
-
+        config = null;
+        messages = null;
         log.info("[LazyRoad] : Plugin disabled");
     }
 
