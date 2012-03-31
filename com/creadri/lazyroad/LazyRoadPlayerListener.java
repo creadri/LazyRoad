@@ -68,7 +68,8 @@ public class LazyRoadPlayerListener implements Listener {
 
         removeBuilder(player);
         
-        LazyRoad.messages.sendPlayerMessage(event.getPlayer(), "messages.teleported");
+        //LazyRoad.messages.sendPlayerMessage(event.getPlayer(), "messages.teleported");
+        event.getPlayer().sendMessage(plugin.getMessage("messages.teleported"));
     }
     
 
@@ -162,7 +163,7 @@ public class LazyRoadPlayerListener implements Listener {
             oos = new ObjectOutputStream(new FileOutputStream(file));
             oos.writeObject(undoers);
         } catch (IOException ex) {
-            LazyRoad.log.warning("[LazyRoad] Unable to save undo file");
+            LazyRoad.log.warning("[LazyRoad] Unable to save undo file.");
         } finally {
             if (oos != null) {
                 try {
@@ -192,7 +193,7 @@ public class LazyRoadPlayerListener implements Listener {
             
             
         } catch (Exception ex) {
-            LazyRoad.log.warning("[LazyRoad] Unable to load undo file");
+            LazyRoad.log.warning("[LazyRoad] Unable to load undo file. Only worry if this happens after you've build a road.");
             undoers = new HashMap<String, Stack<Undo>>();
         } finally {
             if (ois != null) {

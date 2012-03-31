@@ -1,8 +1,8 @@
 main: com.creadri.lazyroad.LazyRoad
-version: 0.7.1
+version: 0.7.2
 name: LazyRoad
 description: Make roads as you walk
-author: adreide
+authors: [adreide, VeraLapsa]
 website: http://www.creadri.com
 commands:
   road:
@@ -13,6 +13,9 @@ commands:
       /<command> stop
       /<command> undo
       /<command> straight
+      /<command> up
+      /<command> down
+      /<command> normal
   bridge:
     description: 'Make bridges.'
     usage: |
@@ -21,6 +24,9 @@ commands:
       /<command> stop
       /<command> undo
       /<command> straight
+      /<command> up
+      /<command> down
+      /<command> normal
   tunnel:
     description: 'Make tunnels.'
     usage: |
@@ -29,6 +35,9 @@ commands:
       /<command> stop
       /<command> undo
       /<command> straight
+      /<command> up
+      /<command> down
+      /<command> normal
 permissions:
   lazyroad.build:
     default: op
