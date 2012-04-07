@@ -103,7 +103,7 @@ public class RoadEnabled {
             } else if (y - oldY > 1) {
                 y = oldY + 1;
             }
-        } 
+        }
 
         Direction dir = getDirection(playerLocation);
 
@@ -256,9 +256,9 @@ public class RoadEnabled {
         if (oldDir == dir) {
             return false;
         }
-        
+
         RoadPart part = road.getRoadPartToBuild(1);
-        
+
         if (part == null) {
             return false;
         }
@@ -657,7 +657,7 @@ public class RoadEnabled {
                     // getting the block information
                     int id = ids[h][j];
                     byte data = datas[h][j];
-                    
+
                     if (id != -1) {
                         Block block = world.getBlockAt(newX, newY, newZ);
                         if (isToIgnoreForPillar(block)) {
@@ -1134,7 +1134,7 @@ public class RoadEnabled {
     public boolean isTunnel() {
         return tunnel;
     }
-    
+
     public void setForceDown(boolean forceDown) {
         this.forceDown = forceDown;
     }
@@ -1153,7 +1153,6 @@ public class RoadEnabled {
         return i == 0
                 || i == 6
                 || (i >= 8 && i <= 11)
-                || (i >= 17 && i <= 18)
                 || (i >= 30 && i <= 32)
                 || (i >= 37 && i <= 40)
                 || i == 50
@@ -1162,7 +1161,7 @@ public class RoadEnabled {
                 || i == 59
                 || i == 70
                 || i == 72
-                || i == 78
+                || (i >= 75 && i <= 78)
                 || i == 106
                 || i == 111
                 || i == 115;
@@ -1174,6 +1173,7 @@ public class RoadEnabled {
         return i == 0
                 || i == 6
                 || (i >= 8 && i <= 11)
+                || (i >= 17 && i <= 18)
                 || (i >= 30 && i <= 32)
                 || (i >= 37 && i <= 40)
                 || i == 50

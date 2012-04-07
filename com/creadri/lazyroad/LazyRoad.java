@@ -19,7 +19,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.configuration.Configuration;
 
 /**
  * @author creadri
@@ -46,7 +45,6 @@ public class LazyRoad extends JavaPlugin {
         }
     };
     // config and message related
-    private Configuration config;
     public static Messages messages;
     public static final Logger log = Logger.getLogger("Minecraft");
 
@@ -74,10 +72,18 @@ public class LazyRoad extends JavaPlugin {
             // load undo
             playerListener.unSerializeRoadsUndos(undoSave);
 
-            //this.saveDefaultConfig();
-
             this.getConfig().options().copyDefaults(true);
-            
+
+            if (!getConfig().contains("version")) {
+                this.saveDefaultConfig();
+                this.reloadConfig();
+                this.getConfig().set("version", "'" + getDescription().getVersion() + "'");
+            } else if (!getConfig().getString("version").equalsIgnoreCase(getDescription().getVersion())) {
+                this.saveDefaultConfig();
+                this.reloadConfig();
+                this.getConfig().set("version", "'" + getDescription().getVersion() + "'");
+            }
+
             this.saveConfig();
 
         } catch (IOException ex) {
@@ -452,14 +458,14 @@ public class LazyRoad extends JavaPlugin {
 
     /**
      * Takes a string and replaces &# color codes with ChatColors
-     * 
+     *
      * @param message
      * @return
      */
     protected String replaceColors(String message) {
         return message.replaceAll("(?i)&([a-f0-9])", "\u00A7$1");
     }
-    
+
     protected String getMessage(String node, Object... values){
         String msg = getConfig().getString(node);
         msg = replaceColors(msg);

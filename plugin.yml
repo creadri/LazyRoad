@@ -1,8 +1,9 @@
 main: com.creadri.lazyroad.LazyRoad
-version: 0.7.2
+version: 0.7.3
 name: LazyRoad
 description: Make roads as you walk
-authors: [adreide, VeraLapsa]
+author: adreide
+authors: [VeraLapsa]
 website: http://www.creadri.com
 commands:
   road:
@@ -16,6 +17,8 @@ commands:
       /<command> up
       /<command> down
       /<command> normal
+    permission: lazyroad.build
+    permission-message: You don't have <permission>
   bridge:
     description: 'Make bridges.'
     usage: |
@@ -27,6 +30,8 @@ commands:
       /<command> up
       /<command> down
       /<command> normal
+    permission: lazyroad.build
+    permission-message: You don't have <permission>
   tunnel:
     description: 'Make tunnels.'
     usage: |
@@ -38,6 +43,8 @@ commands:
       /<command> up
       /<command> down
       /<command> normal
+    permission: lazyroad.build
+    permission-message: You don't have <permission>
 permissions:
   lazyroad.build:
     default: op

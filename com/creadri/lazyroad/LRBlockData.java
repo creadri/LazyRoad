@@ -2,371 +2,470 @@ package com.creadri.lazyroad;
 
 /**
  *
- * @author creadri
- * Made it's own class by VeraLapsa
- * 
+ * @author creadri Made it's own class by VeraLapsa
+ *
  */
 public class LRBlockData {
-    
+
     private int id;
     private byte data;
     private Direction dir;
-    
-    public LRBlockData(int id, byte data, Direction dir, boolean saving){
+
+    public LRBlockData(int id, byte data, Direction dir, boolean saving) {
         this.id = id;
         this.data = data;
         this.dir = dir;
-        
+
         if (saving) {
             return;
         } else {
             setPlaceDirection();
         }
     }
-    
-    private void setPlaceDirection(){
+
+    private void setPlaceDirection() {
         // directional items
-        if (dir != Direction.NORTH) { // north is the default direction for items
-
-            // torches(50) and off and on redstone torches(75,76)
-            if ((id == 50 || id == 75 || id == 76) && data != (byte) 5) {
-                if (dir == Direction.SOUTH ) {
-                    if (data == (byte) 1) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 3;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 1) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 2;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 1) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 1;
-                    }
-                }
-            }
-
-            // Stairs
-            if ((id == 53 || id == 67 || id == 108 || id == 109 || id == 114)) {  
-                
-                byte vrtdir = (byte) ( data & 0x04); // AND to get if Stair is upside down
-                data = (byte) ( data & 0x03); // AND to get the Dir
-                
-                if (dir == Direction.SOUTH ) {
-                    if (data == (byte) 0) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 2;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 0;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 1;
-                    }
-                }
-                // OR the upside down bit
-                data = (byte) (data | vrtdir);
-            }
-            
-            
-            // Dispensers, Chests, Furnaces, ladder, and wall signs
-            if ((id == 23 || id == 54 || id == 61 || id == 62 || id == 65 || id == 68 )) {
-                if (dir == Direction.SOUTH) {
-                    if (data == (byte) 2) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 5;
-                    } else if (data == (byte) 5) {
-                        data = (byte) 4;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 2) {
-                        data = (byte) 5;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 5) {
-                        data = (byte) 3;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 2) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 5;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 5) {
-                        data = (byte) 2;
-                    }
-                }
-            }
-            
-            // button
-            if (id == 77) {
-                if (dir == Direction.SOUTH) {
-                    if (data == (byte) 1) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 3;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 1) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 1;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 1) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 2;
-                    }
-                }
-            }
-            
-            
-            // Pumpkins and Jack-O-Lanturns
-            if ((id == 86 || id == 91)) {
-                if (dir == Direction.SOUTH) {
-                    if (data == (byte) 0) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 1;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 0;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 2;
-                    }
-                }
-            }
-            
-            // Diodes(93,94)
-            if (( id == 93 || id == 94)) {               
-                byte tick = (byte) ( 0x0C & data); // AND the 3 and 4 bits to get the tick duration
-                data = (byte) ( 0x03 & data); // AND the 1 and 2 bits to get direction
-                
-                if (dir == Direction.SOUTH) {
-                    if (data == (byte) 0) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 1;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 0;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 2;
-                    }
-                }
-                
-                // OR the Tick back on to data
-                data = (byte) (data | tick);
-            }
-            
-            //trap door
-            if (id == 96) {
-                byte open = (byte) (data & 0x04);
-                data = (byte) (data & 0x03);
-                
-                if (dir == Direction.SOUTH) {
-                    if (data == (byte) 0) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 2;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 1;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 0;
-                    }
-                }
-                
-                data = (byte) (data | open);
-            }
-            
-            //pistons
-            if ((id == 29 || id == 33)) {
-                if (dir == Direction.SOUTH) {
-                    if (data == (byte) 2) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 5;
-                    } else if (data == (byte) 5) {
-                        data = (byte) 4;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 2) {
-                        data = (byte) 5;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 5) {
-                        data = (byte) 3;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 2) {
-                        data = (byte) 4;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 5;
-                    } else if (data == (byte) 4) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 5) {
-                        data = (byte) 2;
-                    }
-                }
-            }
-            
-            //fence gate
-            if (id == 107) {
-                byte open = (byte) (data & 0x04);
-                data = (byte) (data & 0x03);
-                
-                if (dir == Direction.SOUTH) {
-                    if (data == (byte) 0) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 1;
-                    }
-                } else if (dir == Direction.EAST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 2;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 0;
-                    }
-                } else if (dir == Direction.WEST) {
-                    if (data == (byte) 0) {
-                        data = (byte) 3;
-                    } else if (data == (byte) 1) {
-                        data = (byte) 0;
-                    } else if (data == (byte) 2) {
-                        data = (byte) 1;
-                    } else if (data == (byte) 3) {
-                        data = (byte) 2;
-                    }
-                }
-                data = (byte) (data | open);
-            }
-            
+        switch(dir){
+            case EAST:
+                data = (byte) rotate90(id, (int) data);
+                break;
+            case WEST:
+                data = (byte) rotate90Reverse(id,(int) data);
+                break;
+            case SOUTH:
+                data = (byte) flip(id, (int) data);
+                break;
+            default:
+                break;
         }
+    }
+
+    /**
+     * Rotate a block's data value 90 degrees (north->east->south->west->north);
+     *
+     * @param type
+     * @param data
+     * @return
+     */
+    public static int rotate90(int type, int data) {
+        switch (type) {
+            case 50:
+            case 75:
+            case 76:
+                switch (data) {
+                    case 1:
+                        return 3;
+                    case 2:
+                        return 4;
+                    case 3:
+                        return 2;
+                    case 4:
+                        return 1;
+                }
+                break;
+
+            case 66:
+                switch (data) {
+                    case 6:
+                        return 7;
+                    case 7:
+                        return 8;
+                    case 8:
+                        return 9;
+                    case 9:
+                        return 6;
+                }
+            /*
+             * FALL-THROUGH
+             */
+
+            case 27:
+            case 28:
+                switch (data & 0x7) {
+                    case 0:
+                        return 1 | (data & ~0x7);
+                    case 1:
+                        return 0 | (data & ~0x7);
+                    case 2:
+                        return 5 | (data & ~0x7);
+                    case 3:
+                        return 4 | (data & ~0x7);
+                    case 4:
+                        return 2 | (data & ~0x7);
+                    case 5:
+                        return 3 | (data & ~0x7);
+                }
+                break;
+
+            case 53:
+            case 67:
+            case 108:
+            case 109:
+            case 114:
+                switch (data) {
+                    case 0:
+                        return 2;
+                    case 1:
+                        return 3;
+                    case 2:
+                        return 1;
+                    case 3:
+                        return 0;
+                }
+                break;
+
+            case 69:
+            case 77:
+                int thrown = data & 0x8;
+                int withoutThrown = data & ~0x8;
+                switch (withoutThrown) {
+                    case 1:
+                        return 3 | thrown;
+                    case 2:
+                        return 4 | thrown;
+                    case 3:
+                        return 2 | thrown;
+                    case 4:
+                        return 1 | thrown;
+                }
+                break;
+
+            case 64:
+            case 71:
+                int topHalf = data & 0x8;
+                int swung = data & 0x4;
+                int withoutFlags = data & ~(0x8 | 0x4);
+                switch (withoutFlags) {
+                    case 0:
+                        return 1 | topHalf | swung;
+                    case 1:
+                        return 2 | topHalf | swung;
+                    case 2:
+                        return 3 | topHalf | swung;
+                    case 3:
+                        return 0 | topHalf | swung;
+                }
+                break;
+
+            case 63:
+                return (data + 4) % 16;
+
+            case 65:
+            case 68:
+            case 54:
+            case 61:
+            case 62:
+            case 23:
+                switch (data) {
+                    case 2:
+                        return 5;
+                    case 3:
+                        return 4;
+                    case 4:
+                        return 2;
+                    case 5:
+                        return 3;
+                }
+                break;
+
+            case 86:
+            case 91:
+                switch (data) {
+                    case 0:
+                        return 1;
+                    case 1:
+                        return 2;
+                    case 2:
+                        return 3;
+                    case 3:
+                        return 0;
+                }
+                break;
+
+            case 93:
+            case 94:
+                int dir = data & 0x03;
+                int delay = data - dir;
+                switch (dir) {
+                    case 0:
+                        return 1 | delay;
+                    case 1:
+                        return 2 | delay;
+                    case 2:
+                        return 3 | delay;
+                    case 3:
+                        return 0 | delay;
+                }
+                break;
+
+            case 96:
+                int withoutOrientation = data & ~0x3;
+                int orientation = data & 0x3;
+                switch (orientation) {
+                    case 0:
+                        return 3 | withoutOrientation;
+                    case 1:
+                        return 2 | withoutOrientation;
+                    case 2:
+                        return 0 | withoutOrientation;
+                    case 3:
+                        return 1 | withoutOrientation;
+                }
+                break;
+
+            case 33:
+            case 29:
+            case 34:
+                final int rest = data & ~0x7;
+                switch (data & 0x7) {
+                    case 2:
+                        return 5 | rest;
+                    case 3:
+                        return 4 | rest;
+                    case 4:
+                        return 2 | rest;
+                    case 5:
+                        return 3 | rest;
+                }
+                break;
+
+            case 99:
+            case 100:
+                if (data >= 10) {
+                    return data;
+                }
+                return (data * 3) % 10;
+
+            case 106:
+                return ((data << 1) | (data >> 3)) & 0xf;
+
+            case 107:
+                return ((data + 1) & 0x3) | (data & ~0x3);
+
+        }
+
+        return data;
+    }
+
+    /**
+     * Rotate a block's data value -90 degrees
+     * (north<-east<-south<-west<-north);
+     *
+     *
+     * @param type
+     * @param data
+     * @return
+     */
+    public static int rotate90Reverse(int type, int data) {
+        // case ([0-9]+): return ([0-9]+) -> case \2: return \1
+
+        switch (type) {
+            case 50:
+            case 75:
+            case 76:
+                switch (data) {
+                    case 3:
+                        return 1;
+                    case 4:
+                        return 2;
+                    case 2:
+                        return 3;
+                    case 1:
+                        return 4;
+                }
+                break;
+
+            case 66:
+                switch (data) {
+                    case 7:
+                        return 6;
+                    case 8:
+                        return 7;
+                    case 9:
+                        return 8;
+                    case 6:
+                        return 9;
+                }
+            /*
+             * FALL-THROUGH
+             */
+
+            case 27:
+            case 28:
+                int power = data & ~0x7;
+                switch (data & 0x7) {
+                    case 1:
+                        return 0 | power;
+                    case 0:
+                        return 1 | power;
+                    case 5:
+                        return 2 | power;
+                    case 4:
+                        return 3 | power;
+                    case 2:
+                        return 4 | power;
+                    case 3:
+                        return 5 | power;
+                }
+                break;
+
+            case 53:
+            case 67:
+            case 108:
+            case 109:
+            case 114:
+                switch (data) {
+                    case 2:
+                        return 0;
+                    case 3:
+                        return 1;
+                    case 1:
+                        return 2;
+                    case 0:
+                        return 3;
+                }
+                break;
+
+            case 69:
+            case 77:
+                int thrown = data & 0x8;
+                int withoutThrown = data & ~0x8;
+                switch (withoutThrown) {
+                    case 3:
+                        return 1 | thrown;
+                    case 4:
+                        return 2 | thrown;
+                    case 2:
+                        return 3 | thrown;
+                    case 1:
+                        return 4 | thrown;
+                }
+                break;
+
+            case 64:
+            case 71:
+                int topHalf = data & 0x8;
+                int swung = data & 0x4;
+                int withoutFlags = data & ~(0x8 | 0x4);
+                switch (withoutFlags) {
+                    case 1:
+                        return 0 | topHalf | swung;
+                    case 2:
+                        return 1 | topHalf | swung;
+                    case 3:
+                        return 2 | topHalf | swung;
+                    case 0:
+                        return 3 | topHalf | swung;
+                }
+                break;
+
+            case 63:
+                return (data + 12) % 16;
+
+            case 65:
+            case 68:
+            case 54:
+            case 61:
+            case 62:
+            case 23:
+                switch (data) {
+                    case 5:
+                        return 2;
+                    case 4:
+                        return 3;
+                    case 2:
+                        return 4;
+                    case 3:
+                        return 5;
+                }
+                break;
+
+            case 86:
+            case 91:
+                switch (data) {
+                    case 1:
+                        return 0;
+                    case 2:
+                        return 1;
+                    case 3:
+                        return 2;
+                    case 0:
+                        return 3;
+                }
+                break;
+
+            case 93:
+            case 94:
+                int dir = data & 0x03;
+                int delay = data - dir;
+                switch (dir) {
+                    case 1:
+                        return 0 | delay;
+                    case 2:
+                        return 1 | delay;
+                    case 3:
+                        return 2 | delay;
+                    case 0:
+                        return 3 | delay;
+                }
+                break;
+
+            case 96:
+                int withoutOrientation = data & ~0x3;
+                int orientation = data & 0x3;
+                switch (orientation) {
+                    case 3:
+                        return 0 | withoutOrientation;
+                    case 2:
+                        return 1 | withoutOrientation;
+                    case 0:
+                        return 2 | withoutOrientation;
+                    case 1:
+                        return 3 | withoutOrientation;
+                }
+
+            case 29:
+            case 33:
+            case 34:
+                final int rest = data & ~0x7;
+                switch (data & 0x7) {
+                    case 5:
+                        return 2 | rest;
+                    case 4:
+                        return 3 | rest;
+                    case 2:
+                        return 4 | rest;
+                    case 3:
+                        return 5 | rest;
+                }
+                break;
+
+            case 99:
+            case 100:
+                if (data >= 10) {
+                    return data;
+                }
+                return (data * 7) % 10;
+
+            case 106:
+                return ((data >> 1) | (data << 3)) & 0xf;
+
+            case 107:
+                return ((data + 3) & 0x3) | (data & ~0x3);
+        }
+
+        return data;
+    }
+
+    /**
+     * Flip a block's data value.
+     *
+* @param type
+     * @param data
+     * @return
+     */
+    public static int flip(int type, int data) {
+        return rotate90(type, rotate90(type, data));
     }
 
     public byte getData() {
@@ -380,5 +479,4 @@ public class LRBlockData {
     public int getId() {
         return id;
     }
-    
 }
