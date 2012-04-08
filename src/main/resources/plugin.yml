@@ -1,0 +1,51 @@
+main: com.creadri.lazyroad.LazyRoad
+version: 0.7.4
+name: LazyRoad
+description: Make roads as you walk
+author: adreide
+authors: [VeraLapsa]
+website: http://www.creadri.com
+commands:
+  road:
+    description: 'Make roads.'
+    usage: |
+      /<command>
+      /<command> roadName [start count]
+      /<command> stop
+      /<command> undo
+      /<command> straight
+      /<command> up
+      /<command> down
+      /<command> normal
+    permission: lazyroad.build
+    permission-message: You don't have <permission>
+  bridge:
+    description: 'Make bridges.'
+    usage: |
+      /<command>
+      /<command> roadName pillarName [start count]
+      /<command> stop
+      /<command> undo
+      /<command> straight
+      /<command> up
+      /<command> down
+      /<command> normal
+    permission: lazyroad.build
+    permission-message: You don't have <permission>
+  tunnel:
+    description: 'Make tunnels.'
+    usage: |
+      /<command>
+      /<command> roadName [start count]
+      /<command> stop
+      /<command> undo
+      /<command> straight
+      /<command> up
+      /<command> down
+      /<command> normal
+    permission: lazyroad.build
+    permission-message: You don't have <permission>
+permissions:
+  lazyroad.build:
+    default: op
+    description: Allows users to build roads, bridges and tunnels.
