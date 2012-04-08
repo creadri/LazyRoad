@@ -16,9 +16,7 @@ public class LRBlockData {
         this.data = data;
         this.dir = dir;
 
-        if (saving) {
-            return;
-        } else {
+        if (!saving) {
             setPlaceDirection();
         }
     }
@@ -48,6 +46,7 @@ public class LRBlockData {
      * @return
      */
     public static int rotate90(int type, int data) {
+        int dir;
         switch (type) {
             case 50:
             case 75:
@@ -85,7 +84,7 @@ public class LRBlockData {
                     case 0:
                         return 1 | (data & ~0x7);
                     case 1:
-                        return 0 | (data & ~0x7);
+                        return (data & ~0x7);
                     case 2:
                         return 5 | (data & ~0x7);
                     case 3:
@@ -102,15 +101,17 @@ public class LRBlockData {
             case 108:
             case 109:
             case 114:
-                switch (data) {
+                int top = data & 0x4;
+                dir = data & 0x3;
+                switch (dir) {
                     case 0:
-                        return 2;
+                        return 2 | top;
                     case 1:
-                        return 3;
+                        return 3 | top;
                     case 2:
-                        return 1;
+                        return 1 | top;
                     case 3:
-                        return 0;
+                        return top;
                 }
                 break;
 
@@ -143,7 +144,7 @@ public class LRBlockData {
                     case 2:
                         return 3 | topHalf | swung;
                     case 3:
-                        return 0 | topHalf | swung;
+                        return topHalf | swung;
                 }
                 break;
 
@@ -184,7 +185,7 @@ public class LRBlockData {
 
             case 93:
             case 94:
-                int dir = data & 0x03;
+                dir = data & 0x03;
                 int delay = data - dir;
                 switch (dir) {
                     case 0:
@@ -194,7 +195,7 @@ public class LRBlockData {
                     case 2:
                         return 3 | delay;
                     case 3:
-                        return 0 | delay;
+                        return delay;
                 }
                 break;
 
@@ -207,7 +208,7 @@ public class LRBlockData {
                     case 1:
                         return 2 | withoutOrientation;
                     case 2:
-                        return 0 | withoutOrientation;
+                        return withoutOrientation;
                     case 3:
                         return 1 | withoutOrientation;
                 }
@@ -258,7 +259,7 @@ public class LRBlockData {
      */
     public static int rotate90Reverse(int type, int data) {
         // case ([0-9]+): return ([0-9]+) -> case \2: return \1
-
+        int dir;
         switch (type) {
             case 50:
             case 75:
@@ -295,7 +296,7 @@ public class LRBlockData {
                 int power = data & ~0x7;
                 switch (data & 0x7) {
                     case 1:
-                        return 0 | power;
+                        return power;
                     case 0:
                         return 1 | power;
                     case 5:
@@ -314,15 +315,17 @@ public class LRBlockData {
             case 108:
             case 109:
             case 114:
-                switch (data) {
+                int top = data & 0x4;
+                dir = data & 0x3;
+                switch (dir) {
                     case 2:
-                        return 0;
+                        return top;
                     case 3:
-                        return 1;
+                        return 1 | top;
                     case 1:
-                        return 2;
+                        return 2 | top;
                     case 0:
-                        return 3;
+                        return 3 | top;
                 }
                 break;
 
@@ -349,7 +352,7 @@ public class LRBlockData {
                 int withoutFlags = data & ~(0x8 | 0x4);
                 switch (withoutFlags) {
                     case 1:
-                        return 0 | topHalf | swung;
+                        return topHalf | swung;
                     case 2:
                         return 1 | topHalf | swung;
                     case 3:
@@ -396,11 +399,11 @@ public class LRBlockData {
 
             case 93:
             case 94:
-                int dir = data & 0x03;
+                dir = data & 0x03;
                 int delay = data - dir;
                 switch (dir) {
                     case 1:
-                        return 0 | delay;
+                        return delay;
                     case 2:
                         return 1 | delay;
                     case 3:
@@ -415,7 +418,7 @@ public class LRBlockData {
                 int orientation = data & 0x3;
                 switch (orientation) {
                     case 3:
-                        return 0 | withoutOrientation;
+                        return withoutOrientation;
                     case 2:
                         return 1 | withoutOrientation;
                     case 0:

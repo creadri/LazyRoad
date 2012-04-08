@@ -21,8 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 
 /**
- * @author creadri
- * some updates buy VeraLapsa
+ * @author creadri some updates buy VeraLapsa
  */
 public class LazyRoad extends JavaPlugin {
 
@@ -72,18 +71,14 @@ public class LazyRoad extends JavaPlugin {
             // load undo
             playerListener.unSerializeRoadsUndos(undoSave);
 
-            this.getConfig().options().copyDefaults(true);
-
             if (!getConfig().contains("version")) {
                 this.saveDefaultConfig();
-                this.reloadConfig();
-                this.getConfig().set("version", "'" + getDescription().getVersion() + "'");
+                this.getConfig().set("version", "" + getDescription().getVersion());
             } else if (!getConfig().getString("version").equalsIgnoreCase(getDescription().getVersion())) {
                 this.saveDefaultConfig();
-                this.reloadConfig();
-                this.getConfig().set("version", "'" + getDescription().getVersion() + "'");
+                this.getConfig().set("version", "" + getDescription().getVersion());
             }
-
+            this.getConfig().options().copyDefaults(true);
             this.saveConfig();
 
         } catch (IOException ex) {
@@ -466,7 +461,7 @@ public class LazyRoad extends JavaPlugin {
         return message.replaceAll("(?i)&([a-f0-9])", "\u00A7$1");
     }
 
-    protected String getMessage(String node, Object... values){
+    protected String getMessage(String node, Object... values) {
         String msg = getConfig().getString(node);
         msg = replaceColors(msg);
         if (values != null) {
