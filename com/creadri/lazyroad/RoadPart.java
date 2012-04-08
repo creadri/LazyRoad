@@ -11,25 +11,25 @@ public class RoadPart implements Comparable<RoadPart>, Serializable {
     private byte[][] datas;
     private int height;
     private int width;
-    
+
     private int groundLayer;
     private int repeatEvery;
-    
+
     public RoadPart(int height, int width) {
         ids = new int[height][width];
         datas = new byte[height][width];
         this.height = height;
         this.width = width;
     }
-    
+
     public boolean isToBuild(int count, int maxSequence) {
         return ((count % maxSequence) % repeatEvery) == 0;
     }
-    
+
     public boolean isToBuild(int count) {
         return count % repeatEvery == 0;
     }
-    
+
     public byte[] getData(int height) {
         return datas[height];
     }
@@ -57,7 +57,7 @@ public class RoadPart implements Comparable<RoadPart>, Serializable {
     public void setHeight(int height) {
         this.height = height;
     }
-    
+
     public int[] getIds(int height) {
         return ids[height];
     }
@@ -85,22 +85,22 @@ public class RoadPart implements Comparable<RoadPart>, Serializable {
     public void setWidth(int width) {
         this.width = width;
     }
-    
+
     public void setSize(int newWidth, int newHeight) {
-        
+
         int[][] newids = new int[newHeight][newWidth];
         byte[][] newdatas = new byte[newHeight][newWidth];
-        
+
         int imax = Math.min(height, newHeight);
         int jmax = Math.min(width, newWidth);
-        
+
         for (int i = 0; i < imax; i++) {
             for (int j = 0; j < jmax; j++) {
                 newids[i][j] = ids[i][j];
                 newdatas[i][j] = datas[i][j];
             }
         }
-        
+
         ids = newids;
         datas = newdatas;
         width = newWidth;

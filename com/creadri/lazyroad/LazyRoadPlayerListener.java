@@ -9,7 +9,9 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
-import org.bukkit.event.player.PlayerListener;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
@@ -17,7 +19,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
  * Handle events for all Player related events
  * @author creadri
  */
-public class LazyRoadPlayerListener extends PlayerListener {
+public class LazyRoadPlayerListener implements Listener {
 
     private final LazyRoad plugin;
     private HashMap<String, RoadEnabled> builders;
@@ -33,7 +35,7 @@ public class LazyRoadPlayerListener extends PlayerListener {
         undoers = new HashMap<String, Stack<Undo>>();
     }
 
-    @Override
+    @EventHandler(priority= EventPriority.LOWEST)
     public void onPlayerMove(PlayerMoveEvent event) {
 
         if (event.isCancelled()) {
@@ -49,7 +51,7 @@ public class LazyRoadPlayerListener extends PlayerListener {
         road.drawRoad(event.getPlayer());
     }
 
-    @Override
+    @EventHandler(priority= EventPriority.LOWEST)
     public void onPlayerTeleport(PlayerTeleportEvent event) {
 
         String player = event.getPlayer().getName();
@@ -66,7 +68,8 @@ public class LazyRoadPlayerListener extends PlayerListener {
 
         removeBuilder(player);
         
-        LazyRoad.messages.sendPlayerMessage(event.getPlayer(), "messages.teleported");
+        //LazyRoad.messages.sendPlayerMessage(event.getPlayer(), "messages.teleported");
+        event.getPlayer().sendMessage(plugin.getMessage("messages.teleported"));
     }
     
 
@@ -78,7 +81,43 @@ public class LazyRoadPlayerListener extends PlayerListener {
         builders.put(player, road);
         return true;
     }
-
+    
+    public RoadEnabled setForceUp(String player){
+        RoadEnabled re;
+        if(builders.containsKey(player)){
+           re = builders.get(player);
+           re.setForceUp(true);
+           re.setForceDown(false);
+        } else {
+            re = null;
+        }
+        return re;
+    }
+    
+    public RoadEnabled setForceDown(String player){
+        RoadEnabled re;
+        if(builders.containsKey(player)){
+           re = builders.get(player);
+           re.setForceUp(false);
+           re.setForceDown(true);
+        }else {
+            re = null;
+        }
+        return re;
+    }
+    
+    public RoadEnabled setNormal(String player){
+        RoadEnabled re;
+        if(builders.containsKey(player)){
+           re = builders.get(player);
+           re.setForceUp(false);
+           re.setForceDown(false);
+        }else {
+            re = null;
+        }
+        return re;
+    }
+    
     public RoadEnabled removeBuilder(String player) {
         RoadEnabled re = builders.remove(player);
         if (re != null) {
@@ -124,7 +163,7 @@ public class LazyRoadPlayerListener extends PlayerListener {
             oos = new ObjectOutputStream(new FileOutputStream(file));
             oos.writeObject(undoers);
         } catch (IOException ex) {
-            LazyRoad.log.warning("[LazyRoad] Unable to save undo file");
+            LazyRoad.log.warning("[LazyRoad] Unable to save undo file.");
         } finally {
             if (oos != null) {
                 try {
@@ -154,7 +193,7 @@ public class LazyRoadPlayerListener extends PlayerListener {
             
             
         } catch (Exception ex) {
-            LazyRoad.log.warning("[LazyRoad] Unable to load undo file");
+            LazyRoad.log.warning("[LazyRoad] Unable to load undo file. Only worry if this happens after you've build a road.");
             undoers = new HashMap<String, Stack<Undo>>();
         } finally {
             if (ois != null) {
