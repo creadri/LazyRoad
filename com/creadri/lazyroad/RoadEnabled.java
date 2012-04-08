@@ -18,14 +18,17 @@ public class RoadEnabled {
     private boolean hasBuilt = false;
     private boolean tunnel = false;
     private boolean straight = true;
+    private boolean forceUp = false;
+    private boolean forceDown = false;
     private int oldX;
     private int oldY;
     private int oldZ;
     private Direction oldDir;
     private Undo undo;
     private World world;
+    protected final LazyRoad plugin;
 
-    public RoadEnabled(Player player, Road road) {
+    public RoadEnabled(Player player, Road road, LazyRoad plugin) {
         Location loc = player.getLocation();
         this.world = loc.getWorld();
         this.oldX = loc.getBlockX();
@@ -36,6 +39,7 @@ public class RoadEnabled {
         this.road = road;
         this.count = 0;
         this.undo = new Undo(world);
+        this.plugin = plugin;
     }
 
     public void setPillar(Pillar pillar) {
@@ -75,9 +79,21 @@ public class RoadEnabled {
         int y = getYFirstBlock(x, playerLocation.getBlockY(), z);
 
         // constraint the y by the tunnel mode or to make stairs
-        if (hasBuilt && tunnel) {
+        if (hasBuilt && tunnel && !forceUp && !forceDown) {
             // for tunnel mode, always keep old Y
             y = oldY;
+        } else if (hasBuilt && forceUp){
+            if ((count - lastBuiltStairs) < road.getMaxGradient()) {
+                y = oldY;
+            } else {
+                y = oldY + 1;
+            }
+        } else if (hasBuilt && forceDown){
+            if ((count - lastBuiltStairs) < road.getMaxGradient()) {
+                y = oldY;
+            } else {
+                y = oldY - 1;
+            }
         } else if (hasBuilt && (oldY - y) != 0) {
             // limit the y value for stairs to apply correctly
             if ((count - lastBuiltStairs) < road.getMaxGradient()) {
@@ -177,7 +193,8 @@ public class RoadEnabled {
         count++;
 
         if (count % 20 == 0) {
-            LazyRoad.messages.sendPlayerMessage(player, "messages.roadCount", count);;
+            //LazyRoad.messages.sendPlayerMessage(player, "messages.roadCount", count);
+            player.sendMessage(plugin.getMessage("messages.roadCount", count));
         }
     }
 
@@ -217,98 +234,9 @@ public class RoadEnabled {
 
         undo.putBlock(b);
 
-        // directional items
-        if (dir != Direction.NORTH) { // north is the default direction for items
+        LRBlockData nb = new LRBlockData(id, data, dir, false);
 
-            // torches normal and redstone
-            if ((id == 50 || id == 75 || id == 76) && data != (byte) 5) {
-                if (dir == Direction.SOUTH && data == (byte) 1) {
-                    // south vs south
-                    data = (byte) 2;
-                } else if (dir == Direction.SOUTH && data == (byte) 2) {
-                    // south vs north
-                    data = (byte) 1;
-                } else if (dir == Direction.SOUTH && data == (byte) 3) {
-                    // south vs west
-                    data = (byte) 4;
-                } else if (dir == Direction.SOUTH && data == (byte) 4) {
-                    // south vs east
-                    data = (byte) 3;
-                } else if (dir == Direction.WEST && data == (byte) 1) {
-                    // west vs south
-                    data = (byte) 3;
-                } else if (dir == Direction.WEST && data == (byte) 2) {
-                    // west vs north
-                    data = (byte) 4;
-                } else if (dir == Direction.WEST && data == (byte) 3) {
-                    // west vs west
-                    data = (byte) 2;
-                } else if (dir == Direction.WEST && data == (byte) 4) {
-                    // west vs east
-                    data = (byte) 1;
-                } else if (dir == Direction.EAST && data == (byte) 1) {
-                    // east vs south
-                    data = (byte) 4;
-                } else if (dir == Direction.EAST && data == (byte) 2) {
-                    // east vs north
-                    data = (byte) 3;
-                } else if (dir == Direction.EAST && data == (byte) 3) {
-                    // east vs west
-                    data = (byte) 1;
-                } else if (dir == Direction.EAST && data == (byte) 4) {
-                    // east vs east
-                    data = (byte) 2;
-                }
-            }
-
-            // torches normal and redstone
-            if ((id == 53 || id == 67 || id == 108 || id == 109)) {               
-                
-                if (dir == Direction.SOUTH && data == (byte) 0) {
-                    // south vs south
-                    data = (byte) 1;
-                } else if (dir == Direction.SOUTH && data == (byte) 1) {
-                    // south vs north
-                    data = (byte) 0;
-                } else if (dir == Direction.SOUTH && data == (byte) 2) {
-                    // south vs west
-                    data = (byte) 3;
-                } else if (dir == Direction.SOUTH && data == (byte) 3) {
-                    // south vs east
-                    data = (byte) 2;
-                    
-                    
-                } else if (dir == Direction.WEST && data == (byte) 0) {
-                    // west vs south
-                    data = (byte) 3;
-                } else if (dir == Direction.WEST && data == (byte) 1) {
-                    // west vs north
-                    data = (byte) 2;
-                } else if (dir == Direction.WEST && data == (byte) 2) {
-                    // west vs west
-                    data = (byte) 0;
-                } else if (dir == Direction.WEST && data == (byte) 3) {
-                    // west vs east
-                    data = (byte) 1;
-                    
-                    
-                } else if (dir == Direction.EAST && data == (byte) 0) {
-                    // east vs south
-                    data = (byte) 2;
-                } else if (dir == Direction.EAST && data == (byte) 1) {
-                    // east vs north
-                    data = (byte) 3;
-                } else if (dir == Direction.EAST && data == (byte) 2) {
-                    // east vs west
-                    data = (byte) 0;
-                } else if (dir == Direction.EAST && data == (byte) 3) {
-                    // east vs east
-                    data = (byte) 1;
-                }
-            }
-        }
-
-        b.setTypeIdAndData(id, data, false);
+        b.setTypeIdAndData(nb.getId(), nb.getData(), false);
     }
 
     private int getYFirstBlock(int x, int y, int z) {
@@ -328,9 +256,9 @@ public class RoadEnabled {
         if (oldDir == dir) {
             return false;
         }
-        
+
         RoadPart part = road.getRoadPartToBuild(1);
-        
+
         if (part == null) {
             return false;
         }
@@ -729,7 +657,7 @@ public class RoadEnabled {
                     // getting the block information
                     int id = ids[h][j];
                     byte data = datas[h][j];
-                    
+
                     if (id != -1) {
                         Block block = world.getBlockAt(newX, newY, newZ);
                         if (isToIgnoreForPillar(block)) {
@@ -1207,6 +1135,14 @@ public class RoadEnabled {
         return tunnel;
     }
 
+    public void setForceDown(boolean forceDown) {
+        this.forceDown = forceDown;
+    }
+
+    public void setForceUp(boolean forceUp) {
+        this.forceUp = forceUp;
+    }
+
     public void setTunnel(boolean tunnel) {
         this.tunnel = tunnel;
     }
@@ -1217,7 +1153,6 @@ public class RoadEnabled {
         return i == 0
                 || i == 6
                 || (i >= 8 && i <= 11)
-                || (i >= 17 && i <= 18)
                 || (i >= 30 && i <= 32)
                 || (i >= 37 && i <= 40)
                 || i == 50
@@ -1226,7 +1161,10 @@ public class RoadEnabled {
                 || i == 59
                 || i == 70
                 || i == 72
-                || i == 78;
+                || (i >= 75 && i <= 78)
+                || i == 106
+                || i == 111
+                || i == 115;
     }
 
     private boolean isToIgnoreForPillar(Block b) {
@@ -1235,15 +1173,19 @@ public class RoadEnabled {
         return i == 0
                 || i == 6
                 || (i >= 8 && i <= 11)
+                || (i >= 17 && i <= 18)
                 || (i >= 30 && i <= 32)
                 || (i >= 37 && i <= 40)
                 || i == 50
                 || i == 51
-                || i == 55
                 || i == 59
                 || i == 70
                 || i == 72
-                || i == 78;
+                || i == 78
+                || i == 79
+                || i == 106
+                || i == 111
+                || i == 115;
     }
 
     public boolean isHasBuilt() {
