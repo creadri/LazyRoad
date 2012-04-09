@@ -59,7 +59,7 @@ public class LazyRoad extends JavaPlugin {
             pillarsDirectory = new File(getDataFolder(), "pillars");
 
             if (!roadsDirectory.exists() || !pillarsDirectory.exists()) {
-                FileManager.copyDefaultRessources(getDataFolder(), "/com/creadri/lazyroad/", "defaultRoads.zip", "defaultPillars.zip");
+                FileManager.copyDefaultRessources(getDataFolder(), "/", "defaultRoads.zip", "defaultPillars.zip");
             }
 
             // load roads and pillars
