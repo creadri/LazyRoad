@@ -542,11 +542,15 @@ public class RoadEnabled {
         if (part == null) {
             return;
         }
-
+        int newY;
         int groundLayer = part.getGroundLayer();
         // new coords
         int newX = tunnel ? x - 1 : x;
-        int newY = y - part.getGroundLayer();
+        if (y - oldY > 0) {
+            newY = y - part.getGroundLayer() - 1;
+        } else {
+            newY = y - part.getGroundLayer();
+        }
         int newZ = z;
         // information about the array of informations
         int height = part.getHeight();
@@ -692,7 +696,12 @@ public class RoadEnabled {
         int groundLayer = part.getGroundLayer();
         // new coords
         int newX = tunnel ? x + 1 : x;
-        int newY = y - part.getGroundLayer();
+        int newY;
+        if (y - oldY > 0) {
+            newY = y - part.getGroundLayer() - 1;
+        } else {
+            newY = y - part.getGroundLayer();
+        }
         int newZ = z;
         // information about the array of informations
         int height = part.getHeight();
@@ -840,7 +849,12 @@ public class RoadEnabled {
         int groundLayer = part.getGroundLayer();
         // new coords
         int newX = x;
-        int newY = y - part.getGroundLayer();
+        int newY;
+        if (y - oldY > 0) {
+            newY = y - part.getGroundLayer() - 1;
+        } else {
+            newY = y - part.getGroundLayer();
+        }
         int newZ = tunnel ? z + 1 : z;
         // information about the array of informations
         int height = part.getHeight();
@@ -986,7 +1000,12 @@ public class RoadEnabled {
         int groundLayer = part.getGroundLayer();
         // new coords
         int newX = x;
-        int newY = y - part.getGroundLayer();
+        int newY;
+        if (y - oldY > 0) {
+            newY = y - part.getGroundLayer() - 1;
+        } else {
+            newY = y - part.getGroundLayer();
+        }
         int newZ = tunnel ? z - 1 : z;
         // information about the array of informations
         int height = part.getHeight();
