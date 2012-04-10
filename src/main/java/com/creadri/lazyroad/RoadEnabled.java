@@ -27,6 +27,7 @@ public class RoadEnabled {
     private Undo undo;
     private World world;
     protected final LazyRoad plugin;
+    private LazyMiner lm = null;
 
     public RoadEnabled(Player player, Road road, LazyRoad plugin) {
         Location loc = player.getLocation();
@@ -40,6 +41,7 @@ public class RoadEnabled {
         this.count = 0;
         this.undo = new Undo(world);
         this.plugin = plugin;
+        this.lm = plugin.getLazyMiners(player.getName());
     }
 
     public void setPillar(Pillar pillar) {
@@ -82,13 +84,13 @@ public class RoadEnabled {
         if (hasBuilt && tunnel && !forceUp && !forceDown) {
             // for tunnel mode, always keep old Y
             y = oldY;
-        } else if (hasBuilt && forceUp){
+        } else if (hasBuilt && forceUp) {
             if ((count - lastBuiltStairs) < road.getMaxGradient()) {
                 y = oldY;
             } else {
                 y = oldY + 1;
             }
-        } else if (hasBuilt && forceDown){
+        } else if (hasBuilt && forceDown) {
             if ((count - lastBuiltStairs) < road.getMaxGradient()) {
                 y = oldY;
             } else {
@@ -232,7 +234,14 @@ public class RoadEnabled {
             return;
         }
 
-        undo.putBlock(b);
+        if (lm != null) {
+            if (!lm.giveblock(b)) {
+                undo.putBlock(b);
+            }
+        } else {
+            undo.putBlock(b);
+        }
+
 
         LRBlockData nb = new LRBlockData(id, data, dir, false);
 

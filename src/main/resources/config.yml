@@ -41,4 +41,9 @@ messages:
   forceUp: "&bForcing road to go up."
   forceDown: "&bForcing road to go down."
   normal: "&bRoad will be placed normally now."
-  
+  lazyminer:
+    enable: "&bLazyMiner mode enabled."
+    disable: "&bLazyMiner mode disabled."
+lazyminer:
+  # TODO Change ids for release
+  ids: [14,15,16,17,21,49,56,74,75]

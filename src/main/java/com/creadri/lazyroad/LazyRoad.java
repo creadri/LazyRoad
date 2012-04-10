@@ -29,6 +29,7 @@ public class LazyRoad extends JavaPlugin {
     private boolean eventRegistered = false;
     // player properties
     private HashSet<String> playerPropStraight = new HashSet<String>();
+    private HashMap<String, LazyMiner> lazyMiners = new HashMap<String, LazyMiner>();
     // roads and pillars
     private HashMap<String, Road> roads = new HashMap<String, Road>();
     private HashMap<String, Pillar> pillars = new HashMap<String, Pillar>();
@@ -43,6 +44,8 @@ public class LazyRoad extends JavaPlugin {
             return name.endsWith(".ser");
         }
     };
+    // LazyMiner
+    private int checkIds[] = null;
     // config and message related
     public static Messages messages;
     public static final Logger log = Logger.getLogger("Minecraft");
@@ -87,6 +90,8 @@ public class LazyRoad extends JavaPlugin {
             return;
         }
 
+        setupLazyMinerIds();
+
         // Register events
         if (!eventRegistered) {
             PluginManager pm = getServer().getPluginManager();
@@ -116,6 +121,7 @@ public class LazyRoad extends JavaPlugin {
 
             Player player = (Player) sender;
             String splayer = player.getName();
+
 
             if (!player.hasPermission("lazyroad.build")) {
                 //messages.sendPlayerMessage(player, "messages.noPermission");
@@ -170,6 +176,18 @@ public class LazyRoad extends JavaPlugin {
                 if (re != null) {
                     //messages.sendPlayerMessage(player, "messages.normal");
                     player.sendMessage(getMessage("messages.normal"));
+                }
+                return true;
+            } else if (args.length == 1 && args[0].equalsIgnoreCase("lazyminer")) {
+                /**
+                 * SUB-COMMAND normal
+                 */
+                if (lazyMiners.containsKey(player.getName())) {
+                    lazyMiners.remove(player.getName());
+                    player.sendMessage(getMessage("messages.lazyminer.disable"));
+                } else {
+                    setLazyMiners(player.getName(), new LazyMiner(this, player));
+                    player.sendMessage(getMessage("messages.lazyminer.enable"));
                 }
                 return true;
             } else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
@@ -473,5 +491,37 @@ public class LazyRoad extends JavaPlugin {
             }
         }
         return msg;
+    }
+
+    private void setupLazyMinerIds() {
+        String ids = getConfig().getString("lazyminer.ids");
+        ids = ids.replace('[', ' ').replace(']', ' ');
+        String[] parsedIds = ids.split(",");
+
+        if (parsedIds.length > 0) {
+            checkIds = new int[parsedIds.length];
+            for (int i = 0; i < parsedIds.length; i++) {
+                parsedIds[i] = parsedIds[i].trim();
+                try {
+                    checkIds[i] = Integer.parseInt(parsedIds[i]);
+                } catch (NumberFormatException numberFormatException) {
+                    log.warning("Error Parsing " + parsedIds[i] + " as a number.");
+                }
+            }
+        } else {
+            log.warning("No Id's set for the LazyMiner Feature.");
+        }
+    }
+
+    public LazyMiner getLazyMiners(String name) {
+        return lazyMiners.get(name);
+    }
+
+    public void setLazyMiners(String name, LazyMiner lm) {
+        lazyMiners.put(name, lm);
+    }
+
+    public int[] getCheckIds() {
+        return checkIds;
     }
 }
