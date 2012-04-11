@@ -41,7 +41,7 @@ public class RoadEnabled {
         this.count = 0;
         this.undo = new Undo(world);
         this.plugin = plugin;
-        this.lm = plugin.getLazyMiners(player.getName());
+        this.lm = plugin.getLazyMiner(player.getName());
     }
 
     public void setPillar(Pillar pillar) {
@@ -235,7 +235,11 @@ public class RoadEnabled {
         }
 
         if (lm != null) {
-            if (!lm.giveblock(b)) {
+            if (lm.enabled()) {
+                if (!lm.SaveBlock(b)) {
+                    undo.putBlock(b);
+                }
+            } else {
                 undo.putBlock(b);
             }
         } else {

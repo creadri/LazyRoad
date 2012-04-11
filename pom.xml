@@ -5,7 +5,7 @@
 
     <groupId>com.creadri</groupId>
     <artifactId>LazyRoad</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.8.0</version>
     <packaging>jar</packaging>
 
     <name>LazyRoad</name>
@@ -13,6 +13,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <debug.server.directory>D:/gitprojects/DebugServer</debug.server.directory>
+        <debug.plugin.directory>${debug.server.directory}/plugins</debug.plugin.directory>
     </properties>
 
     <dependencies>
@@ -21,11 +23,6 @@
             <artifactId>junit</artifactId>
             <version>3.8.1</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.2.5-R1.1</version>
         </dependency>
         <dependency>
             <groupId>org.bukkit</groupId>
@@ -38,6 +35,11 @@
             <artifactId>MineUtil</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>1.2.5-R1.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -46,9 +48,38 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <includes>
+                    <include>config.yml</include>
+                    <include>plugin.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>defaultRoads.zip</include>
+                    <include>defaultPillars.zip</include>
+                </includes>
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <configuration>
+                            <finalName>${project.artifactId}-${project.version}-SNAPSHOT</finalName>
+                        </configuration>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         <!-- Compile plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -59,34 +90,34 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
+            
         </plugins>
     </build>
 
     <profiles>
         <profile>
             <id>Debug</id>
-            <properties>
-                <debug.server.directory>D:/gitprojects/DebugServer</debug.server.directory>
-                <debug.plugin.directory>${debug.server.directory}/plugins</debug.plugin.directory>
-            </properties>
             <build>
                 <plugins>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <version>2.4</version>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>1.6</version>
                         <executions>
                             <execution>
-                                <phase>install</phase>
-                                <configuration>
-                                    <outputDirectory>${debug.plugin.directory}</outputDirectory>
-                                    <finalName>${project.artifactId}</finalName>
-                                </configuration>
                                 <goals>
-                                    <goal>jar</goal>
+                                    <goal>shade</goal>
                                 </goals>
+                                <id>shade</id>
+                                <configuration>
+                                    <outputFile>${debug.plugin.directory}/${project.artifactId}-DEBUG.jar</outputFile>
+                                </configuration>
                             </execution>
                         </executions>
+                        <configuration>
+                            <shadedGroupFilter>${project.groupId}</shadedGroupFilter>
+                        </configuration>
                     </plugin>
 
                     <!-- Compile plugin -->
@@ -98,6 +129,43 @@
                             <source>1.6</source>
                             <target>1.6</target>
                             <debug>true</debug>
+                            <optimize>true</optimize>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>Release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <id>shade</id>
+                                <configuration>
+                                    <outputDirectory>release/</outputDirectory>
+                                    <finalName>${project.artifactId}</finalName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <shadedGroupFilter>${project.groupId}</shadedGroupFilter>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>2.3.2</version>
+                        <configuration>
+                            <source>1.6</source>
+                            <target>1.6</target>
                             <optimize>true</optimize>
                         </configuration>
                     </plugin>

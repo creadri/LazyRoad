@@ -18,4 +18,7 @@ Any value defined here will override the pom.xml file value but is only applicab
     <config-data xmlns="http://www.netbeans.org/ns/maven-config-data/1">
         <configurations/>
     </config-data>
+    <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
+        <word>checkids</word>
+    </spellchecker-wordlist>
 </project-shared-configuration>

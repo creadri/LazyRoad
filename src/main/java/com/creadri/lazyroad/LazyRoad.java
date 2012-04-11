@@ -1,24 +1,23 @@
 package com.creadri.lazyroad;
 
+import com.creadri.lazyroad.commands.LazyMinerCommand;
+import com.creadri.lazyroad.commands.roadCommand;
 import com.creadri.util.ColumnChat;
 import com.creadri.util.FileManager;
 import com.creadri.util.Messages;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * @author creadri some updates buy VeraLapsa
@@ -37,6 +36,7 @@ public class LazyRoad extends JavaPlugin {
     private File roadsDirectory;
     private File pillarsDirectory;
     private File undoSave;
+    private Map<String, CommandHandler> commands = new HashMap<String, CommandHandler>();
     private FilenameFilter filenameFilter = new FilenameFilter() {
 
         @Override
@@ -62,7 +62,7 @@ public class LazyRoad extends JavaPlugin {
             pillarsDirectory = new File(getDataFolder(), "pillars");
 
             if (!roadsDirectory.exists() || !pillarsDirectory.exists()) {
-                FileManager.copyDefaultRessources(getDataFolder(), "/", "defaultRoads.zip", "defaultPillars.zip");
+                FileManager.copyDefaultRessources(getDataFolder(), "", "defaultRoads.zip", "defaultPillars.zip");
             }
 
             // load roads and pillars
@@ -102,7 +102,10 @@ public class LazyRoad extends JavaPlugin {
             log.log(Level.INFO, "[LazyRoad] : Version " + getDescription().getVersion() + " is enabled!");
         }
 
-
+        commands.put("road", new roadCommand(this));
+        commands.put("tunnel", new roadCommand(this));
+        commands.put("bridge", new roadCommand(this));
+        commands.put("lazyminer", new LazyMinerCommand(this));
     }
 
     /**
@@ -111,266 +114,34 @@ public class LazyRoad extends JavaPlugin {
     @Override
     public void onDisable() {
         playerListener.serializeRoadsUndos(undoSave);
+        for (Map.Entry<String, LazyMiner> entry : lazyMiners.entrySet()) {
+            entry.getValue().saveMinerData();
+        }
         log.info("[LazyRoad] : Plugin disabled");
     }
-
+    /**
+     * Handles the commands for the plugin.
+     * @param sender
+     * @param command
+     * @param label
+     * @param args
+     * @return
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        CommandHandler handler = commands.get(command.getName().toLowerCase());
 
-        if (sender instanceof Player) {
-
-            Player player = (Player) sender;
-            String splayer = player.getName();
-
-
-            if (!player.hasPermission("lazyroad.build")) {
-                //messages.sendPlayerMessage(player, "messages.noPermission");
-                String message = getMessage("messages.noPermission");
-                player.sendMessage(message);
-                return true;
-            }
-
-            if (args.length == 0) {
-                /**
-                 * SUB-COMMAND LISTING
-                 */
-                sendRoadPillarMessages(player, 0);
-
-            } else if (args.length == 1 && (args[0].equalsIgnoreCase("stop") || args[0].equalsIgnoreCase("end"))) {
-                /**
-                 * SUB-COMMAND STOP
-                 */
-                RoadEnabled re = playerListener.removeBuilder(splayer);
-                if (re != null) {
-                    //messages.sendPlayerMessage(player, "messages.buildStop", re.getCount());
-                    player.sendMessage(getMessage("messages.buildStop", re.getCount()));
-                }
-
-                return true;
-
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("up")) {
-                /**
-                 * SUB-COMMAND up
-                 */
-                RoadEnabled re = playerListener.setForceUp(splayer);
-                if (re != null) {
-                    //messages.sendPlayerMessage(player, "messages.forceUp");
-                    player.sendMessage(getMessage("messages.forceUp"));
-                }
-                return true;
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("down")) {
-                /**
-                 * SUB-COMMAND down
-                 */
-                RoadEnabled re = playerListener.setForceDown(splayer);
-                if (re != null) {
-                    //messages.sendPlayerMessage(player, "messages.forceDown");
-                    player.sendMessage(getMessage("messages.forceDown"));
-                }
-                return true;
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("normal")) {
-                /**
-                 * SUB-COMMAND normal
-                 */
-                RoadEnabled re = playerListener.setNormal(splayer);
-                if (re != null) {
-                    //messages.sendPlayerMessage(player, "messages.normal");
-                    player.sendMessage(getMessage("messages.normal"));
-                }
-                return true;
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("lazyminer")) {
-                /**
-                 * SUB-COMMAND normal
-                 */
-                if (lazyMiners.containsKey(player.getName())) {
-                    lazyMiners.remove(player.getName());
-                    player.sendMessage(getMessage("messages.lazyminer.disable"));
-                } else {
-                    setLazyMiners(player.getName(), new LazyMiner(this, player));
-                    player.sendMessage(getMessage("messages.lazyminer.enable"));
-                }
-                return true;
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
-                /**
-                 * SUB-COMMAND RELOAD
-                 */
-                try {
-                    loadRoads();
-                    loadPillars();
-                } catch (IOException ex) {
-                    //messages.sendPlayerMessage(player, "messages.ioError");
-                    player.sendMessage(getMessage("messages.ioError"));
-                }
-                //messages.sendPlayerMessage(player, "messages.reload");
-                player.sendMessage(getMessage("messages.reload"));
-                return true;
-
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("undo")) {
-                /**
-                 * SUB-COMMAND UNDO
-                 */
-                if (playerListener.undo(splayer)) {
-                    //messages.sendPlayerMessage(player, "messages.undo");
-                    player.sendMessage(getMessage("messages.undo"));
-                } else {
-                    //messages.sendPlayerMessage(player, "messages.undoError");
-                    player.sendMessage(getMessage("messages.undoError"));
-                }
-                return true;
-
-            } else if (args.length == 1 && args[0].equalsIgnoreCase("straight")) {
-                /**
-                 * SUB-COMMAND STRAIGHT
-                 */
-                if (playerPropStraight.contains(splayer)) {
-                    playerPropStraight.remove(splayer);
-                    //messages.sendPlayerMessage(player, "messages.straightEnabled");
-                    player.sendMessage(getMessage("messages.straightEnabled"));
-                } else {
-                    playerPropStraight.add(splayer);
-                    //messages.sendPlayerMessage(player, "messages.straightDisabled");
-                    player.sendMessage(getMessage("messages.straightDisabled"));
-                }
-
-                return true;
-
-            } else if (args.length == 1) {
-                try {
-                    int page = Integer.parseInt(args[0]);
-
-                    sendRoadPillarMessages(player, page);
-
-                    return true;
-                } catch (NumberFormatException ex) {
-                    //
-                }
-            }
-
-
-            if (label.equals("road")) {
-                /**
-                 * ROAD COMMAND
-                 */
-                if (args.length > 0) {
-                    Road road = roads.get(args[0]);
-                    if (road == null) {
-                        //messages.sendPlayerMessage(player, "messages.noRoad");
-                        player.sendMessage(getMessage("messages.noRoad"));
-                        return true;
-                    }
-
-                    RoadEnabled re = new RoadEnabled(player, road, this);
-                    int count = 1;
-                    if (args.length > 1) {
-                        try {
-                            count = Integer.parseInt(args[1]);
-                        } catch (NumberFormatException ex) {
-                            count = 1;
-                        }
-                    }
-                    re.setCount(count - 1);
-
-                    if (playerPropStraight.contains(splayer)) {
-                        re.setStraight(false);
-                    }
-
-                    if (playerListener.addBuilder(splayer, re)) {
-                        //messages.sendPlayerMessage(player, "messages.beginBuilding");
-                        player.sendMessage(getMessage("messages.beginBuilding"));
-                    } else {
-                        //messages.sendPlayerMessage(player, "messages.alreadyBuilding");
-                        player.sendMessage(getMessage("messages.alreadyBuilding"));
-                    }
-                }
-
-            } else if (label.equals("tunnel")) {
-                /**
-                 * TUNNEL COMMAND
-                 */
-                if (args.length > 0) {
-                    Road road = roads.get(args[0]);
-                    if (road == null) {
-                        //messages.sendPlayerMessage(player, "messages.noRoad");
-                        player.sendMessage(getMessage("messages.noRoad"));
-                        return true;
-                    }
-
-                    RoadEnabled re = new RoadEnabled(player, road, this);
-                    int count = 1;
-                    if (args.length > 1) {
-                        try {
-                            count = Integer.parseInt(args[1]);
-                        } catch (NumberFormatException ex) {
-                            count = 1;
-                        }
-                    }
-                    re.setCount(count - 1);
-                    re.setTunnel(true);
-
-                    if (playerPropStraight.contains(splayer)) {
-                        re.setStraight(false);
-                    }
-
-                    if (playerListener.addBuilder(splayer, re)) {
-                        //messages.sendPlayerMessage(player, "messages.beginBuilding");
-                        player.sendMessage(getMessage("messages.beginBuilding"));
-                    } else {
-                        //messages.sendPlayerMessage(player, "messages.alreadyBuilding");
-                        player.sendMessage(getMessage("messages.alreadyBuilding"));
-                    }
-                }
-
-            } else if (label.equals("bridge")) {
-                /**
-                 * BRIDGE COMMAND
-                 */
-                if (args.length > 1) {
-                    Road road = roads.get(args[0]);
-                    if (road == null) {
-                        //messages.sendPlayerMessage(player, "messages.noRoad");
-                        player.sendMessage(getMessage("messages.noRoad"));
-                        return true;
-                    }
-
-                    Pillar pillar = pillars.get(args[1]);
-                    if (pillars == null) {
-                        //messages.sendPlayerMessage(player, "messages.noPillar");
-                        player.sendMessage(getMessage("messages.noPillar"));
-                        return true;
-                    }
-
-                    RoadEnabled re = new RoadEnabled(player, road, this);
-                    int count = 1;
-                    if (args.length > 2) {
-                        try {
-                            count = Integer.parseInt(args[2]);
-                        } catch (NumberFormatException ex) {
-                            count = 1;
-                        }
-                    }
-                    re.setCount(count - 1);
-                    re.setTunnel(true);
-                    re.setPillar(pillar);
-
-                    if (playerPropStraight.contains(splayer)) {
-                        re.setStraight(false);
-                    }
-
-                    if (playerListener.addBuilder(splayer, re)) {
-                        //messages.sendPlayerMessage(player, "messages.beginBuilding");
-                        player.sendMessage(getMessage("messages.beginBuilding"));
-                    } else {
-                        //messages.sendPlayerMessage(player, "messages.alreadyBuilding");
-                        player.sendMessage(getMessage("messages.alreadyBuilding"));
-                    }
-                }
-            }
+        if (handler != null) {
+            return handler.perform(sender, label, args);
+        } else {
+            return false;
         }
-
-        return true;
     }
-
-    private void loadRoads() throws IOException {
+    /**
+     * Loads the roads in the roads folder into the plugin.
+     * @throws IOException
+     */
+    public void loadRoads() throws IOException {
         roads.clear();
 
         File[] files = roadsDirectory.listFiles(filenameFilter);
@@ -398,8 +169,11 @@ public class LazyRoad extends JavaPlugin {
             }
         }
     }
-
-    private void loadPillars() throws IOException {
+    /**
+     * Loads the pillars in the pillars folder into the plugin.
+     * @throws IOException
+     */
+    public void loadPillars() throws IOException {
         pillars.clear();
 
         File[] files = pillarsDirectory.listFiles(filenameFilter);
@@ -428,47 +202,6 @@ public class LazyRoad extends JavaPlugin {
         }
     }
 
-    private void sendRoadPillarMessages(Player player, int page) {
-
-        int pages = Math.max(roads.size(), pillars.size()) / 6;
-
-        if (page > pages || page < 0) {
-
-            return;
-        }
-
-        String titleColor = ChatColor.GOLD.toString();
-        String valueColor = ChatColor.LIGHT_PURPLE.toString();
-        String barColor = ChatColor.AQUA.toString();
-
-        player.sendMessage(ColumnChat.getColumn(barColor, titleColor, "Roads", "Pillar"));
-
-        Iterator<String> roadIt = roads.keySet().iterator();
-        Iterator<String> pillarIt = pillars.keySet().iterator();
-        // advance till the correct page
-        int until = page * 6;
-        while (until > 0 && roadIt.hasNext()) {
-            roadIt.next();
-            until--;
-        }
-        until = page * 6;
-        while (until > 0 && pillarIt.hasNext()) {
-            pillarIt.next();
-            until--;
-        }
-        // print
-        int i = 6;
-        while (i > 0 && (roadIt.hasNext() || pillarIt.hasNext())) {
-            String pillarName = pillarIt.hasNext() ? pillarIt.next() : "";
-            String roadName = roadIt.hasNext() ? roadIt.next() : "";
-
-            player.sendMessage(ColumnChat.getColumn(barColor, valueColor, roadName, pillarName));
-            i--;
-        }
-
-        player.sendMessage("Page " + page + " of " + pages);
-    }
-
     /**
      * Takes a string and replaces &# color codes with ChatColors
      *
@@ -478,23 +211,31 @@ public class LazyRoad extends JavaPlugin {
     protected String replaceColors(String message) {
         return message.replaceAll("(?i)&([a-f0-9])", "\u00A7$1");
     }
-
-    protected String getMessage(String node, Object... values) {
+    /**
+     * Get a message from the config.
+     * @param node The node in the config.
+     * @param values 0 or more values that are to be inserted into the message.
+     * @return The parsed message.
+     */
+    public String getMessage(String node, Object... values) {
         String msg = getConfig().getString(node);
         msg = replaceColors(msg);
         if (values != null) {
-
             for (int j = 0; j < values.length; j++) {
                 String fieldName = "%" + j;
-
                 msg = msg.replaceFirst(fieldName, values[j].toString());
             }
         }
         return msg;
     }
-
+    /**
+     * Generates the int[] checkIds from the config
+     */
     private void setupLazyMinerIds() {
-        String ids = getConfig().getString("lazyminer.ids");
+        String ids = getConfig().getString("lazyminer.ids", "");
+        if (ids.equalsIgnoreCase("")) {
+            return;
+        }
         ids = ids.replace('[', ' ').replace(']', ' ');
         String[] parsedIds = ids.split(",");
 
@@ -512,16 +253,97 @@ public class LazyRoad extends JavaPlugin {
             log.warning("No Id's set for the LazyMiner Feature.");
         }
     }
+    /**
+     *
+     * @param name
+     * @return If the Miner if the plugin has the miner else it returns null
+     */
+    public LazyMiner getLazyMiner(String name) {
+        if (lazyMiners.containsKey(name)) {
+            return lazyMiners.get(name);
+        } else {
+            return null;
+        }
 
-    public LazyMiner getLazyMiners(String name) {
-        return lazyMiners.get(name);
     }
-
-    public void setLazyMiners(String name, LazyMiner lm) {
+    /**
+     * Removes a miner from the plugin.
+     * @param name
+     */
+    public void removeMiner(String name) {
+        if (lazyMiners.containsKey(name)) {
+            lazyMiners.remove(name);
+        }
+    }
+    /**
+     * Adds a new Miner to the plugin.
+     * @param name Name of the miner
+     * @param lm The new Miner
+     */
+    public void putLazyMiner(String name, LazyMiner lm) {
         lazyMiners.put(name, lm);
     }
-
+    /**
+     *
+     * @return Returns the array of checkids.
+     */
     public int[] getCheckIds() {
         return checkIds;
     }
+    /**
+     * Gets the plugins loaded Pillars
+     * @return
+     */
+    public HashMap<String, Pillar> getPillars() {
+        return pillars;
+    }
+    /**
+     * Set the plugins Pillars
+     * @param pillars
+     */
+    public void setPillars(HashMap<String, Pillar> pillars) {
+        this.pillars = pillars;
+    }
+    /**
+     * Gets the plugins loaded Roads
+     * @return
+     */
+    public HashMap<String, Road> getRoads() {
+        return roads;
+    }
+    /**
+     * Set the plugins Roads
+     * @param roads
+     */
+    public void setRoads(HashMap<String, Road> roads) {
+        this.roads = roads;
+    }
+    /**
+     * Gets if the player should not lay the road straight
+     * @param name
+     * @return
+     */
+    public boolean getPlayerPropStraight(String name) {
+        return playerPropStraight.contains(name);
+    }
+    /**
+     * Sets if the player should not lay the road straight
+     * @param name
+     * @param state
+     */
+    public void setPlayerPropStraight(String name, boolean state) {
+        if (state) {
+            playerPropStraight.add(name);
+        } else {
+            playerPropStraight.remove(name);
+        }
+    }
+    /**
+     * Returns the plugins playerListiner
+     * @return
+     */
+    public LazyRoadPlayerListener getPlayerListener() {
+        return playerListener;
+    }
+    
 }

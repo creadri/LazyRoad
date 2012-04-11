@@ -8,6 +8,7 @@ website: http://www.creadri.com
 commands:
   road:
     description: 'Make roads.'
+    aliases: ['lr']
     usage: |
       /<command>
       /<command> roadName [start count]
@@ -17,10 +18,13 @@ commands:
       /<command> up
       /<command> down
       /<command> normal
-    permission: lazyroad.build
-    permission-message: You don't have <permission>
+    permission: lazyroad.user
+    permission-message: |
+      You don't have <permission>
+      Or you don't have lazyroad.user and lazyroad.[roadname]
   bridge:
     description: 'Make bridges.'
+    aliases: ['lb']
     usage: |
       /<command>
       /<command> roadName pillarName [start count]
@@ -30,10 +34,14 @@ commands:
       /<command> up
       /<command> down
       /<command> normal
-    permission: lazyroad.build
-    permission-message: You don't have <permission>
+    permission: lazyroad.user
+    permission-message: |
+      You don't have <permission>
+      Or you don't have lazyroad.user,
+      lazyroad.[roadname], and lazyroad.[pillarname] permissions
   tunnel:
     description: 'Make tunnels.'
+    aliases: ['lt']
     usage: |
       /<command>
       /<command> roadName [start count]
@@ -43,9 +51,59 @@ commands:
       /<command> up
       /<command> down
       /<command> normal
-    permission: lazyroad.build
+    permission: lazyroad.user
+    permission-message: |
+      You don't have <permission>
+      Or you don't have lazyroad.user and lazyroad.[roadname]
+  lazyminer:
+    description: 'The LazyMiner feature of LazyRoad'
+    aliases: ['lm']
+    usage: |
+      /<command> : Enables or disables LazyMiner feature.
+      /<command> ids : Displays the ids of the blocks LM will mine.
+      /<command> removeid [blockID] : Removes an id from that list.
+      /<command> addid [blockID] : Adds an id to that list.
+      /<command> store : Puts the drops that LM has
+      acumulated in the chest you're looking at.
+    permission: lazyroad.lazyminer
     permission-message: You don't have <permission>
 permissions:
-  lazyroad.build:
+  lazyroad.lazyminer:
     default: op
-    description: Allows users to build roads, bridges and tunnels.
+    description: lazyminer commands
+  lazyroad.stop:
+    default: op
+    description: stop sub-command
+  lazyroad.up:
+    default: op
+    description: up sub-command
+  lazyroad.down:
+    default: op
+    description: down sub-command
+  lazyroad.normal:
+    default: op
+    description: normal sub-command
+  lazyroad.reload:
+    default: op
+    description: reload sub-command
+  lazyroad.undo:
+    default: op
+    description: undo  sub-command
+  lazyroad.straight:
+    default: op
+    description: straight sub-command
+  lazyroad.user:
+    description: Allows users to build specific roads and pillars.
+    children:
+      lazyroad.stop: true
+      lazyroad.up: true
+      lazyroad.down: true
+      lazyroad.normal: true
+      lazyroad.undo: true
+      lazyroad.straight: true
+  lazyroad.build:
+    description: Allows all LazyRoad commands.
+    children:
+      lazyroad.user: true
+      lazyroad.lazyminer: true
+      

@@ -44,6 +44,14 @@ messages:
   lazyminer:
     enable: "&bLazyMiner mode enabled."
     disable: "&bLazyMiner mode disabled."
+    empty: "&4That's the last of it."
+    notempty: "&4There's still &6%0&4 stacks of items left to put somewhere."
+    drops: "&bEnable LazyMiner to run this command."
+    stop: "&4You now have &6%0&4 stacks of items stored."
+    addid: "&6%0&4 has been added to the blocks ids LazyMiner Mines."
+    removeid: "&6%0&4 has been removed from the blocks ids LazyMiner Mines."
+    cantremove: "&6%0&4 was not in the list of blocks LazyMiner Mines."
+    ids: "&4Checked Ids: &6%0"
 lazyminer:
   # TODO Change ids for release
-  ids: [14,15,16,17,21,49,56,74,75]
+  ids: [14,15,16,17,21,49,56,73,74]
