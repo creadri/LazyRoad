@@ -132,7 +132,7 @@ public class LazyRoad extends JavaPlugin {
         CommandHandler handler = commands.get(command.getName().toLowerCase());
 
         if (handler != null) {
-            return handler.perform(sender, label, args);
+            return handler.perform(sender, command.getName().toLowerCase(), args);
         } else {
             return false;
         }
