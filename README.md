@@ -1,3 +1,9 @@
+Support Dropped
+======
+
+Dear all, the support is dropped and the plugin has not been updated for two years. Please see forks, you might have more chances.
+
+
 LazyRoad
 ======
 
